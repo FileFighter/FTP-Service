@@ -3,8 +3,8 @@ use tracing::{info, metadata::LevelFilter, Level};
 use tracing_subscriber::{
     filter::Targets, fmt::format::FmtSpan, fmt::time::SystemTime, prelude::*,
 };
-use unftp_auth_filefighter::FileFighterAuthenticator;
-use unftp_sbe_filefighter::ServerExt;
+use unftp_auth_filefighter::*;
+use unftp_sbe_filefighter::FileFighter;
 
 #[tokio::main]
 pub async fn main() {
@@ -18,17 +18,19 @@ pub async fn main() {
         .with(
             Targets::new()
                 .with_target("libunftp", LevelFilter::OFF)
-                .with_default(Level::INFO),
+                .with_default(Level::DEBUG),
         )
         .init();
 
     info!("Started FTP Server");
 
-    libunftp::Server::connect_to_filefighter()
-        .greeting("FileFighter FTP server")
-        .authenticator(Arc::new(FileFighterAuthenticator::new()))
-        .passive_ports(50000..65535)
-        .listen("127.0.0.1:2121")
-        .await
-        .unwrap();
+    libunftp::Server::with_authenticator(
+        Box::new(move || FileFighter::new()),
+        Arc::new(FileFighterAuthenticator::new()),
+    )
+    .greeting("FileFighter FTP server")
+    .passive_ports(50000..65535)
+    .listen("127.0.0.1:2121")
+    .await
+    .unwrap();
 }

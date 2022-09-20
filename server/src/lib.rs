@@ -32,8 +32,7 @@
 
 mod api;
 mod backend;
-mod ext;
 mod metadata;
 
 // reexports
-pub use ext::ServerExt;
+pub use backend::FileFighter;

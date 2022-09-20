@@ -1,5 +1,6 @@
+use crate::user::FileFighterUser;
 use async_trait::async_trait;
-use libunftp::auth::{AuthenticationError, Authenticator, Credentials, DefaultUser};
+use libunftp::auth::{AuthenticationError, Authenticator, Credentials};
 use tracing::instrument;
 
 #[derive(Debug)]
@@ -12,13 +13,29 @@ impl FileFighterAuthenticator {
 }
 
 #[async_trait]
-impl Authenticator<DefaultUser> for FileFighterAuthenticator {
+impl Authenticator<FileFighterUser> for FileFighterAuthenticator {
     #[instrument]
     async fn authenticate(
         &self,
         username: &str,
         creds: &Credentials,
-    ) -> Result<DefaultUser, AuthenticationError> {
-        Ok(DefaultUser {})
+    ) -> Result<FileFighterUser, AuthenticationError> {
+        if username.is_empty() {
+            return Err(AuthenticationError::BadUser);
+        }
+
+        let password = creds
+            .password
+            .as_ref()
+            .ok_or(AuthenticationError::BadPassword)?;
+
+        if password.is_empty() {
+            return Err(AuthenticationError::BadPassword);
+        }
+
+        Ok(FileFighterUser::new(
+            username.to_owned(),
+            password.to_owned(),
+        ))
     }
 }

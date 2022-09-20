@@ -32,6 +32,8 @@
 
 mod api;
 mod auth;
+mod user;
 
 // Reexports
 pub use auth::FileFighterAuthenticator;
+pub use user::FileFighterUser;

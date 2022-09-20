@@ -1,9 +1,9 @@
 use crate::metadata::InodeMetaData;
 use async_trait::async_trait;
-use libunftp::auth::UserDetail;
-use libunftp::storage::{Fileinfo, Metadata, Result, StorageBackend};
+use libunftp::storage::{Fileinfo, Metadata, Result, StorageBackend, FEATURE_RESTART};
 use std::{fmt::Debug, path::Path};
 use tracing::instrument;
+use unftp_auth_filefighter::FileFighterUser;
 
 #[derive(Debug)]
 pub struct FileFighter;
@@ -15,18 +15,18 @@ impl FileFighter {
 }
 
 #[async_trait]
-impl<User: UserDetail> StorageBackend<User> for FileFighter {
+impl StorageBackend<FileFighterUser> for FileFighter {
     type Metadata = InodeMetaData;
 
     #[instrument]
     fn supported_features(&self) -> u32 {
-        todo!()
+        FEATURE_RESTART
     }
 
     #[instrument]
     async fn metadata<P: AsRef<Path> + Send + Debug>(
         &self,
-        user: &User,
+        user: &FileFighterUser,
         path: P,
     ) -> Result<Self::Metadata> {
         todo!()
@@ -35,12 +35,12 @@ impl<User: UserDetail> StorageBackend<User> for FileFighter {
     #[instrument]
     async fn list<P>(
         &self,
-        user: &User,
+        user: &FileFighterUser,
         path: P,
     ) -> Result<Vec<Fileinfo<std::path::PathBuf, Self::Metadata>>>
     where
         P: AsRef<Path> + Send + Debug,
-        <Self as StorageBackend<User>>::Metadata: Metadata,
+        <Self as StorageBackend<FileFighterUser>>::Metadata: Metadata,
     {
         todo!()
     }
@@ -48,7 +48,7 @@ impl<User: UserDetail> StorageBackend<User> for FileFighter {
     #[instrument]
     async fn get<P: AsRef<Path> + Send + Debug>(
         &self,
-        user: &User,
+        user: &FileFighterUser,
         path: P,
         start_pos: u64,
     ) -> Result<Box<dyn tokio::io::AsyncRead + Send + Sync + Unpin>> {
@@ -58,7 +58,7 @@ impl<User: UserDetail> StorageBackend<User> for FileFighter {
     #[instrument(skip(bytes, path))]
     async fn put<FilePath, ByteStream>(
         &self,
-        user: &User,
+        user: &FileFighterUser,
         bytes: ByteStream,
         path: FilePath,
         start_pos: u64,
@@ -71,24 +71,36 @@ impl<User: UserDetail> StorageBackend<User> for FileFighter {
     }
 
     #[instrument]
-    async fn del<P: AsRef<Path> + Send + Debug>(&self, _user: &User, path: P) -> Result<()> {
+    async fn del<P: AsRef<Path> + Send + Debug>(
+        &self,
+        _user: &FileFighterUser,
+        path: P,
+    ) -> Result<()> {
         todo!()
     }
 
     #[instrument]
-    async fn rmd<P: AsRef<Path> + Send + Debug>(&self, _user: &User, path: P) -> Result<()> {
+    async fn rmd<P: AsRef<Path> + Send + Debug>(
+        &self,
+        _user: &FileFighterUser,
+        path: P,
+    ) -> Result<()> {
         todo!()
     }
 
     #[instrument]
-    async fn mkd<P: AsRef<Path> + Send + Debug>(&self, _user: &User, path: P) -> Result<()> {
+    async fn mkd<P: AsRef<Path> + Send + Debug>(
+        &self,
+        _user: &FileFighterUser,
+        path: P,
+    ) -> Result<()> {
         todo!()
     }
 
     #[instrument]
     async fn rename<P: AsRef<Path> + Send + Debug>(
         &self,
-        user: &User,
+        user: &FileFighterUser,
         from: P,
         to: P,
     ) -> Result<()> {
@@ -96,7 +108,13 @@ impl<User: UserDetail> StorageBackend<User> for FileFighter {
     }
 
     #[instrument]
-    async fn cwd<P: AsRef<Path> + Send + Debug>(&self, user: &User, path: P) -> Result<()> {
-        todo!()
+    async fn cwd<P: AsRef<Path> + Send + Debug>(
+        &self,
+        user: &FileFighterUser,
+        path: P,
+    ) -> Result<()> {
+        // TODO: normalize path without interacting with the fs (. and .. // )
+        // TODO: check that path is a folder
+        Ok(())
     }
 }

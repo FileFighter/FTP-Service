@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 async-trait = "0.1.56"
 libunftp = "0.18.5"
+tracing = "0.1.36"

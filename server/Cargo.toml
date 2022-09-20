@@ -1,0 +1,11 @@
+[package]
+name = "unftp-sbe-filefighter"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = "0.1.56"
+libunftp = "0.18.5"
+tokio = "1.21.1"

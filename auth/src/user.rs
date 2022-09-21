@@ -4,12 +4,12 @@ use std::fmt::Display;
 #[derive(Debug)]
 pub struct FileFighterUser {
     username: String,
-    password: String,
+    token: String,
 }
 
 impl FileFighterUser {
-    pub fn new(username: String, password: String) -> Self {
-        Self { username, password }
+    pub fn new(username: String, token: String) -> Self {
+        Self { username, token }
     }
 }
 

@@ -33,9 +33,9 @@ impl Authenticator<FileFighterUser> for FileFighterAuthenticator {
             return Err(AuthenticationError::BadPassword);
         }
 
-        Ok(FileFighterUser::new(
-            username.to_owned(),
-            password.to_owned(),
-        ))
+        // TODO: cache it.
+        let token = "asd".to_owned();
+
+        Ok(FileFighterUser::new(username.to_owned(), token))
     }
 }

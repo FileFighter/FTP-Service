@@ -30,7 +30,6 @@
 // kinda useless lint because qualified usages are ugly.
 #![allow(clippy::module_name_repetitions)]
 
-mod api;
 mod backend;
 mod metadata;
 

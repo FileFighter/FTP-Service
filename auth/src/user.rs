@@ -1,7 +1,6 @@
 use libunftp::auth::UserDetail;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
-#[derive(Debug)]
 pub struct FileFighterUser {
     username: String,
     token: String,
@@ -16,6 +15,15 @@ impl FileFighterUser {
 impl Display for FileFighterUser {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.username)
+    }
+}
+
+impl Debug for FileFighterUser {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FileFighterUser")
+            .field("username", &self.username)
+            .field("token", &"**hidden**".to_owned())
+            .finish()
     }
 }
 

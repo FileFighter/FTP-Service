@@ -18,12 +18,12 @@ impl FileFighter {
 impl StorageBackend<FileFighterUser> for FileFighter {
     type Metadata = InodeMetaData;
 
-    #[instrument]
+    #[instrument(skip(self), level = "debug")]
     fn supported_features(&self) -> u32 {
         FEATURE_RESTART
     }
 
-    #[instrument]
+    #[instrument(skip(self), level = "debug")]
     async fn metadata<P: AsRef<Path> + Send + Debug>(
         &self,
         user: &FileFighterUser,
@@ -32,7 +32,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         todo!()
     }
 
-    #[instrument]
+    #[instrument(skip(self), level = "debug")]
     async fn list<P>(
         &self,
         user: &FileFighterUser,
@@ -45,7 +45,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         todo!()
     }
 
-    #[instrument]
+    #[instrument(skip(self), level = "debug")]
     async fn get<P: AsRef<Path> + Send + Debug>(
         &self,
         user: &FileFighterUser,
@@ -70,7 +70,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         todo!()
     }
 
-    #[instrument]
+    #[instrument(skip(self), level = "debug")]
     async fn del<P: AsRef<Path> + Send + Debug>(
         &self,
         _user: &FileFighterUser,
@@ -79,7 +79,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         todo!()
     }
 
-    #[instrument]
+    #[instrument(skip(self), level = "debug")]
     async fn rmd<P: AsRef<Path> + Send + Debug>(
         &self,
         _user: &FileFighterUser,
@@ -88,7 +88,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         todo!()
     }
 
-    #[instrument]
+    #[instrument(skip(self), level = "debug")]
     async fn mkd<P: AsRef<Path> + Send + Debug>(
         &self,
         _user: &FileFighterUser,
@@ -97,7 +97,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         todo!()
     }
 
-    #[instrument]
+    #[instrument(skip(self), level = "debug")]
     async fn rename<P: AsRef<Path> + Send + Debug>(
         &self,
         user: &FileFighterUser,
@@ -107,7 +107,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         todo!()
     }
 
-    #[instrument]
+    #[instrument(skip(self), level = "debug")]
     async fn cwd<P: AsRef<Path> + Send + Debug>(
         &self,
         user: &FileFighterUser,

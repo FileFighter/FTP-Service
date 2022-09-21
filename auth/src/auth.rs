@@ -1,20 +1,33 @@
 use crate::user::FileFighterUser;
 use async_trait::async_trait;
+use filefighter_api::ffs_api::{endpoints::get_token_for_user, ApiConfig};
 use libunftp::auth::{AuthenticationError, Authenticator, Credentials};
-use tracing::instrument;
+use tracing::{debug, info, instrument};
 
 #[derive(Debug)]
-pub struct FileFighterAuthenticator;
+pub struct FileFighterAuthenticator {
+    api_config: ApiConfig,
+}
 
 impl FileFighterAuthenticator {
     pub fn new() -> Self {
-        FileFighterAuthenticator {}
+        FileFighterAuthenticator {
+            api_config: ApiConfig {
+                base_url: "http://localhost:8080/api".to_owned(),
+            },
+        }
+    }
+}
+
+impl Default for FileFighterAuthenticator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 #[async_trait]
 impl Authenticator<FileFighterUser> for FileFighterAuthenticator {
-    #[instrument]
+    #[instrument(skip(self, creds), level = "debug")]
     async fn authenticate(
         &self,
         username: &str,
@@ -34,8 +47,15 @@ impl Authenticator<FileFighterUser> for FileFighterAuthenticator {
         }
 
         // TODO: cache it.
-        let token = "asd".to_owned();
+        let token = get_token_for_user(&self.api_config, username, password)
+            .await
+            .map_err(|err| AuthenticationError::new(err.to_string()));
 
-        Ok(FileFighterUser::new(username.to_owned(), token))
+        match &token {
+            Ok(token) => debug!("Got token {}", token),
+            Err(err) => info!("Login failed with error {}", err),
+        };
+
+        Ok(FileFighterUser::new(username.to_owned(), token?))
     }
 }

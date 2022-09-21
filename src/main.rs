@@ -17,8 +17,14 @@ pub async fn main() {
         )
         .with(
             Targets::new()
+                // Own crates debug
+                .with_target("filefighter_api", LevelFilter::DEBUG)
+                .with_target("ftp_fighter", LevelFilter::DEBUG)
+                .with_target("unftp_auth_filefighter", LevelFilter::DEBUG)
+                .with_target("unftp_sbe_filefighter", LevelFilter::DEBUG)
+                // Disable unauth logs
                 .with_target("libunftp", LevelFilter::OFF)
-                .with_default(Level::DEBUG),
+                .with_default(Level::INFO),
         )
         .init();
 

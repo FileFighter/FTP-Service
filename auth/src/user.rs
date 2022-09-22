@@ -2,14 +2,9 @@ use libunftp::auth::UserDetail;
 use std::fmt::{Debug, Display};
 
 pub struct FileFighterUser {
-    username: String,
-    token: String,
-}
-
-impl FileFighterUser {
-    pub fn new(username: String, token: String) -> Self {
-        Self { username, token }
-    }
+    pub id: u32,
+    pub username: String,
+    pub token: String,
 }
 
 impl Display for FileFighterUser {

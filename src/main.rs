@@ -1,19 +1,18 @@
 use std::sync::Arc;
 use tracing::{info, metadata::LevelFilter, Level};
-use tracing_subscriber::{
-    filter::Targets, fmt::format::FmtSpan, fmt::time::SystemTime, prelude::*,
-};
+use tracing_subscriber::{filter::Targets, fmt::time::SystemTime, prelude::*};
 use unftp_auth_filefighter::*;
 use unftp_sbe_filefighter::FileFighter;
 
 #[tokio::main]
 pub async fn main() {
+    color_eyre::install().unwrap();
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::fmt::layer()
                 .with_timer(SystemTime::default()) // i think this is the default one
-                .with_ansi(true)
-                .with_span_events(FmtSpan::ENTER),
+                .with_ansi(true),
         )
         .with(
             Targets::new()

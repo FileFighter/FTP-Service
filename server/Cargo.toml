@@ -11,3 +11,4 @@ tokio = "1.21.1"
 tracing = "0.1.36"
 # own auth
 unftp-auth-filefighter = { path = "../auth" }
+filefighter-api = { path = "../api" }

@@ -1,9 +1,9 @@
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserResource {
     #[serde(rename = "id")]
-    id: i32,
+    pub id: u32,
     #[serde(rename = "privileges")]
-    privileges: String,
+    pub privileges: String,
     #[serde(rename = "username")]
-    username: String,
+    pub username: String,
 }

@@ -1,16 +1,34 @@
 use crate::metadata::InodeMetaData;
 use async_trait::async_trait;
-use libunftp::storage::{Fileinfo, Metadata, Result, StorageBackend, FEATURE_RESTART};
-use std::{fmt::Debug, path::Path};
-use tracing::instrument;
+use filefighter_api::ffs_api::{
+    endpoints::get_contents_of_folder,
+    ApiConfig,
+    ApiError::{ReqwestError, ResponseMalformed},
+};
+use libunftp::storage::{
+    Error, ErrorKind, Fileinfo, Metadata, Result, StorageBackend, FEATURE_RESTART,
+};
+use std::{
+    fmt::Debug,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
+use tokio::io::AsyncRead;
+use tracing::{debug, info, instrument, warn};
 use unftp_auth_filefighter::FileFighterUser;
 
 #[derive(Debug)]
-pub struct FileFighter;
+pub struct FileFighter {
+    api_config: ApiConfig,
+}
 
 impl FileFighter {
     pub fn new() -> Self {
-        FileFighter {}
+        FileFighter {
+            api_config: ApiConfig {
+                base_url: "http://localhost:8080/api".to_owned(),
+            },
+        }
     }
 }
 
@@ -37,12 +55,35 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         &self,
         user: &FileFighterUser,
         path: P,
-    ) -> Result<Vec<Fileinfo<std::path::PathBuf, Self::Metadata>>>
+    ) -> Result<Vec<Fileinfo<PathBuf, Self::Metadata>>>
     where
         P: AsRef<Path> + Send + Debug,
         <Self as StorageBackend<FileFighterUser>>::Metadata: Metadata,
     {
-        todo!()
+        let path = path.as_ref().to_owned();
+        let contents = get_contents_of_folder(&self.api_config, &user.token, path)
+            .await
+            .map_err(|err| match err {
+                ReqwestError(err) => {
+                    warn!("Cought reqwest error {}", err);
+                    Error::new(ErrorKind::LocalError, "Internal Server Error")
+                }
+                ResponseMalformed(err) => {
+                    debug!("Filesystemservice error response: {}", err);
+                    Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
+                }
+            })?;
+
+        debug!("Found {} inodes", contents.inodes.len());
+
+        Ok(contents
+            .inodes
+            .iter()
+            .map(|inode| Fileinfo {
+                path: PathBuf::from(&inode.path),
+                metadata: InodeMetaData::new(inode, &contents.owner),
+            })
+            .collect())
     }
 
     #[instrument(skip(self), level = "debug")]
@@ -51,7 +92,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         user: &FileFighterUser,
         path: P,
         start_pos: u64,
-    ) -> Result<Box<dyn tokio::io::AsyncRead + Send + Sync + Unpin>> {
+    ) -> Result<Box<dyn AsyncRead + Send + Sync + Unpin>> {
         todo!()
     }
 
@@ -65,7 +106,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
     ) -> Result<u64>
     where
         FilePath: AsRef<Path> + Send,
-        ByteStream: tokio::io::AsyncRead + Send + Sync + 'static + Unpin,
+        ByteStream: AsyncRead + Send + Sync + 'static + Unpin,
     {
         todo!()
     }
@@ -73,16 +114,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
     #[instrument(skip(self), level = "debug")]
     async fn del<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &FileFighterUser,
-        path: P,
-    ) -> Result<()> {
-        todo!()
-    }
-
-    #[instrument(skip(self), level = "debug")]
-    async fn rmd<P: AsRef<Path> + Send + Debug>(
-        &self,
-        _user: &FileFighterUser,
+        user: &FileFighterUser,
         path: P,
     ) -> Result<()> {
         todo!()
@@ -91,7 +123,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
     #[instrument(skip(self), level = "debug")]
     async fn mkd<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &FileFighterUser,
+        user: &FileFighterUser,
         path: P,
     ) -> Result<()> {
         todo!()
@@ -103,6 +135,15 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         user: &FileFighterUser,
         from: P,
         to: P,
+    ) -> Result<()> {
+        todo!()
+    }
+
+    #[instrument(skip(self), level = "debug")]
+    async fn rmd<P: AsRef<Path> + Send + Debug>(
+        &self,
+        user: &FileFighterUser,
+        path: P,
     ) -> Result<()> {
         todo!()
     }

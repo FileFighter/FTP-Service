@@ -1,6 +1,12 @@
-use super::{ApiConfig, ApiError, Result};
+use crate::ffs_api::models::error_response::ErrorResponse;
+
+use super::{
+    models::{contents_resource::ContentsResource, user_resource::UserResource},
+    ApiConfig, ApiError, Result,
+};
 use reqwest::StatusCode;
-use tracing::debug;
+use std::path::{Path, PathBuf};
+use tracing::{debug, info};
 
 pub async fn get_token_for_user(
     api_config: &ApiConfig,
@@ -33,5 +39,47 @@ pub async fn get_token_for_user(
             "Response Code was {}, but expected 201",
             code
         ))),
+    }
+}
+
+pub async fn get_user_info(api_config: &ApiConfig, token: &str) -> Result<UserResource> {
+    let url = format!("{}/user/info", api_config.base_url);
+
+    debug!("Getting user info with token '{}'", token);
+
+    let response = reqwest::Client::new()
+        .get(url)
+        .bearer_auth(token)
+        .send()
+        .await?;
+
+    Ok(response.json().await?)
+}
+
+pub async fn get_contents_of_folder(
+    api_config: &ApiConfig,
+    token: &str,
+    path: PathBuf,
+) -> Result<ContentsResource> {
+    let url = format!("{}/filesystem/contents", api_config.base_url);
+
+    debug!("Authenticating with token '{}'", token);
+
+    let response = reqwest::Client::new()
+        .get(url)
+        .bearer_auth(token)
+        .header("X-FF-PATH", path.to_str().unwrap())
+        .send()
+        .await?;
+
+    match response.status() {
+        StatusCode::OK => Ok(response.json().await?),
+        _ => {
+            let error_response = response.json::<ErrorResponse>().await?;
+            Err(ApiError::ResponseMalformed(format!(
+                "Error response with code '{}' and reason '{}'.",
+                error_response.status, error_response.message
+            )))
+        }
     }
 }

@@ -3,17 +3,17 @@ use super::user_resource::UserResource;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InodeResource {
     #[serde(rename = "id")]
-    id: String,
+    pub id: String,
     #[serde(rename = "lastUpdated")]
-    last_updated: i64,
+    pub last_updated: u64,
     #[serde(rename = "lastUpdatedBy")]
-    last_updated_by: UserResource,
+    pub last_updated_by: UserResource,
     #[serde(rename = "mimeType")]
-    mime_type: String,
+    pub mime_type: Option<String>,
     #[serde(rename = "name")]
-    name: String,
+    pub name: String,
     #[serde(rename = "path")]
-    path: String,
+    pub path: String,
     #[serde(rename = "size")]
-    size: i64,
+    pub size: u64,
 }

@@ -1,35 +1,58 @@
+use filefighter_api::ffs_api::models::{
+    inode_resource::InodeResource, user_resource::UserResource,
+};
 use libunftp::storage::{Metadata, Result};
-use std::time::SystemTime;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 #[derive(Debug)]
-pub struct InodeMetaData {}
+pub struct InodeMetaData {
+    len: u64,
+    is_file: bool,
+    modified: SystemTime,
+    gid: u32,
+    uid: u32,
+}
 
 impl Metadata for InodeMetaData {
     fn len(&self) -> u64 {
-        todo!()
+        self.len
     }
 
     fn is_dir(&self) -> bool {
-        todo!()
+        !self.is_file
     }
 
     fn is_file(&self) -> bool {
-        todo!()
+        self.is_file
     }
 
     fn is_symlink(&self) -> bool {
-        todo!()
+        // we dont have symlinks (maybe with sharing?)
+        false
     }
 
     fn modified(&self) -> Result<SystemTime> {
-        todo!()
+        Ok(self.modified)
     }
 
     fn gid(&self) -> u32 {
-        todo!()
+        self.gid
     }
 
     fn uid(&self) -> u32 {
-        todo!()
+        self.uid
+    }
+}
+
+impl InodeMetaData {
+    pub fn new(inode: &InodeResource, owner: &UserResource) -> Self {
+        Self {
+            len: inode.size,
+            is_file: inode.mime_type.is_some(),
+            // TODO: does this work?
+            modified: UNIX_EPOCH + Duration::from_secs(inode.last_updated),
+            gid: owner.id,
+            uid: owner.id,
+        }
     }
 }

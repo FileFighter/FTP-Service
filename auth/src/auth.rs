@@ -1,6 +1,10 @@
 use crate::user::FileFighterUser;
 use async_trait::async_trait;
-use filefighter_api::ffs_api::{endpoints::get_token_for_user, ApiConfig};
+use filefighter_api::ffs_api::{
+    endpoints::{get_token_for_user, get_user_info},
+    models::user_resource,
+    ApiConfig,
+};
 use libunftp::auth::{AuthenticationError, Authenticator, Credentials};
 use tracing::{debug, info, instrument};
 
@@ -46,16 +50,29 @@ impl Authenticator<FileFighterUser> for FileFighterAuthenticator {
             return Err(AuthenticationError::BadPassword);
         }
 
-        // TODO: cache it.
+        // IDEA: the lib does cache the user?
         let token = get_token_for_user(&self.api_config, username, password)
             .await
-            .map_err(|err| AuthenticationError::new(err.to_string()));
+            .map_err(|err| {
+                debug!("Cought Error: {}", err);
+                AuthenticationError::new(err.to_string())
+            })?;
 
-        match &token {
-            Ok(token) => debug!("Got token {}", token),
-            Err(err) => info!("Login failed with error {}", err),
-        };
+        debug!("Got token {}", token);
 
-        Ok(FileFighterUser::new(username.to_owned(), token?))
+        let user_ressource = get_user_info(&self.api_config, &token)
+            .await
+            .map_err(|err| {
+                debug!("Cought Error: {}", err);
+                AuthenticationError::BadUser
+            })?;
+
+        debug!("Got user {:?}", user_ressource);
+
+        Ok(FileFighterUser {
+            username: username.to_owned(),
+            token,
+            id: user_ressource.id,
+        })
     }
 }

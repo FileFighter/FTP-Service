@@ -1,7 +1,7 @@
 use crate::metadata::InodeMetaData;
 use async_trait::async_trait;
 use filefighter_api::ffs_api::{
-    endpoints::get_contents_of_folder,
+    endpoints::{create_directory, get_contents_of_folder},
     ApiConfig,
     ApiError::{ReqwestError, ResponseMalformed},
 };
@@ -126,7 +126,33 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         user: &FileFighterUser,
         path: P,
     ) -> Result<()> {
-        todo!()
+        let path = path.as_ref().to_owned();
+        let (parent_path, name) = match (path.parent(), path.file_name()) {
+            (Some(parent), Some(name)) => Ok((parent, name)),
+            (_, _) => Err(Error::new(
+                ErrorKind::FileNameNotAllowedError,
+                "Path for creating a directoy must contain a parent and child component",
+            )),
+        }?;
+
+        create_directory(
+            &self.api_config,
+            &user.token,
+            parent_path,
+            name.to_str().unwrap(),
+        )
+        .await
+        .map_err(|err| match err {
+            ReqwestError(err) => {
+                warn!("Cought reqwest error {}", err);
+                Error::new(ErrorKind::LocalError, "Internal Server Error")
+            }
+            ResponseMalformed(err) => {
+                debug!("Filesystemservice error response: {}", err);
+                Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
+            }
+        })?;
+        Ok(())
     }
 
     #[instrument(skip(self), level = "debug")]

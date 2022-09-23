@@ -127,32 +127,32 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         path: P,
     ) -> Result<()> {
         let path = path.as_ref().to_owned();
-        match (path.parent(), path.file_name()) {
-            (Some(parent), Some(name)) => {
-                create_directory(
-                    &self.api_config,
-                    &user.token,
-                    parent,
-                    name.to_str().unwrap(), // why is this dangerous?
-                )
-                .await
-                .map_err(|err| match err {
-                    ReqwestError(err) => {
-                        warn!("Cought reqwest error {}", err);
-                        Error::new(ErrorKind::LocalError, "Internal Server Error")
-                    }
-                    ResponseMalformed(err) => {
-                        debug!("Filesystemservice error response: {}", err);
-                        Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
-                    }
-                })?;
-                Ok(())
-            }
+        let (parent_path, name) = match (path.parent(), path.file_name()) {
+            (Some(parent), Some(name)) => Ok((parent, name)),
             (_, _) => Err(Error::new(
                 ErrorKind::FileNameNotAllowedError,
                 "Path for creating a directoy must contain a parent and child component",
             )),
-        }
+        }?;
+
+        create_directory(
+            &self.api_config,
+            &user.token,
+            parent_path,
+            name.to_str().unwrap(), // why is this dangerous?
+        )
+        .await
+        .map_err(|err| match err {
+            ReqwestError(err) => {
+                warn!("Cought reqwest error {}", err);
+                Error::new(ErrorKind::LocalError, "Internal Server Error")
+            }
+            ResponseMalformed(err) => {
+                debug!("Filesystemservice error response: {}", err);
+                Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
+            }
+        })?;
+        Ok(())
     }
 
     #[instrument(skip(self), level = "debug")]

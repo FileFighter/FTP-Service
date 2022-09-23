@@ -1,7 +1,10 @@
 use crate::ffs_api::models::error_response::ErrorResponse;
 
 use super::{
-    models::{contents_resource::ContentsResource, user_resource::UserResource},
+    models::{
+        contents_resource::ContentsResource, folder_creation_resource::FolderCreationResource,
+        inode_resource::InodeResource, user_resource::UserResource,
+    },
     ApiConfig, ApiError, Result,
 };
 use reqwest::StatusCode;
@@ -74,6 +77,40 @@ pub async fn get_contents_of_folder(
 
     match response.status() {
         StatusCode::OK => Ok(response.json().await?),
+        _ => {
+            let error_response = response.json::<ErrorResponse>().await?;
+            Err(ApiError::ResponseMalformed(format!(
+                "Error response with code '{}' and reason '{}'.",
+                error_response.status, error_response.message
+            )))
+        }
+    }
+}
+
+pub async fn create_directory(
+    api_config: &ApiConfig,
+    token: &str,
+    parent_path: &Path,
+    name: &str,
+) -> Result<InodeResource> {
+    let url = format!("{}/filesystem/folder/create", api_config.base_url);
+
+    debug!("Authenticating with token '{}'", token);
+
+    let body = FolderCreationResource {
+        name: name.to_owned(),
+        parent_path: parent_path.to_str().unwrap().to_owned(),
+    };
+
+    let response = reqwest::Client::new()
+        .post(url)
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .await?;
+
+    match response.status() {
+        StatusCode::CREATED => Ok(response.json().await?),
         _ => {
             let error_response = response.json::<ErrorResponse>().await?;
             Err(ApiError::ResponseMalformed(format!(

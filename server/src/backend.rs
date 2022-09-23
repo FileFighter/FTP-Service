@@ -1,7 +1,7 @@
 use crate::metadata::InodeMetaData;
 use async_trait::async_trait;
 use filefighter_api::ffs_api::{
-    endpoints::{create_directory, get_contents_of_folder},
+    endpoints::{create_directory, get_contents_of_folder, move_inode, rename_inode},
     ApiConfig,
     ApiError::{ReqwestError, ResponseMalformed},
 };
@@ -11,7 +11,6 @@ use libunftp::storage::{
 use std::{
     fmt::Debug,
     path::{Path, PathBuf},
-    str::FromStr,
 };
 use tokio::io::AsyncRead;
 use tracing::{debug, info, instrument, warn};
@@ -127,31 +126,20 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         path: P,
     ) -> Result<()> {
         let path = path.as_ref().to_owned();
-        let (parent_path, name) = match (path.parent(), path.file_name()) {
-            (Some(parent), Some(name)) => Ok((parent, name)),
-            (_, _) => Err(Error::new(
-                ErrorKind::FileNameNotAllowedError,
-                "Path for creating a directoy must contain a parent and child component",
-            )),
-        }?;
+        let (parent_path, name) = get_parent_and_name(&path)?;
 
-        create_directory(
-            &self.api_config,
-            &user.token,
-            parent_path,
-            name.to_str().unwrap(),
-        )
-        .await
-        .map_err(|err| match err {
-            ReqwestError(err) => {
-                warn!("Cought reqwest error {}", err);
-                Error::new(ErrorKind::LocalError, "Internal Server Error")
-            }
-            ResponseMalformed(err) => {
-                debug!("Filesystemservice error response: {}", err);
-                Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
-            }
-        })?;
+        create_directory(&self.api_config, &user.token, parent_path.as_path(), name)
+            .await
+            .map_err(|err| match err {
+                ReqwestError(err) => {
+                    warn!("Cought reqwest error {}", err);
+                    Error::new(ErrorKind::LocalError, "Internal Server Error")
+                }
+                ResponseMalformed(err) => {
+                    debug!("Filesystemservice error response: {}", err);
+                    Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
+                }
+            })?;
         Ok(())
     }
 
@@ -162,7 +150,45 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         from: P,
         to: P,
     ) -> Result<()> {
-        todo!()
+        let mut from_path = from.as_ref().to_owned();
+        let to_path = to.as_ref().to_owned();
+
+        let (from_parent, from_name) = get_parent_and_name(&from_path)?;
+        let (to_parent, to_name) = get_parent_and_name(&to_path)?;
+
+        if from_name != to_name {
+            let new_path = rename_inode(&self.api_config, &user.token, &from_path, to_name)
+                .await
+                .map_err(|err| match err {
+                    ReqwestError(err) => {
+                        warn!("Cought reqwest error {}", err);
+                        Error::new(ErrorKind::LocalError, "Internal Server Error")
+                    }
+                    ResponseMalformed(err) => {
+                        debug!("Filesystemservice error response: {}", err);
+                        Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
+                    }
+                })?
+                .path;
+            from_path = PathBuf::from(new_path)
+        };
+
+        if from_parent != to_parent {
+            move_inode(&self.api_config, &user.token, &from_path, &to_parent)
+                .await
+                .map_err(|err| match err {
+                    ReqwestError(err) => {
+                        warn!("Cought reqwest error {}", err);
+                        Error::new(ErrorKind::LocalError, "Internal Server Error")
+                    }
+                    ResponseMalformed(err) => {
+                        debug!("Filesystemservice error response: {}", err);
+                        Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
+                    }
+                })?;
+        };
+
+        Ok(())
     }
 
     #[instrument(skip(self), level = "debug")]
@@ -183,5 +209,15 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         // TODO: normalize path without interacting with the fs (. and .. // )
         // TODO: check that path is a folder
         Ok(())
+    }
+}
+
+fn get_parent_and_name<'a>(path: &'a PathBuf) -> Result<(PathBuf, &'a str)> {
+    match (path.parent(), path.file_name()) {
+        (Some(parent), Some(name)) => Ok((parent.to_path_buf(), name.to_str().unwrap())),
+        (_, _) => Err(Error::new(
+            ErrorKind::FileNameNotAllowedError,
+            "Path for creating a directory must contain a parent and child component",
+        )),
     }
 }

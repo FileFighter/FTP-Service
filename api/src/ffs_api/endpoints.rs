@@ -1,4 +1,6 @@
-use crate::ffs_api::models::error_response::ErrorResponse;
+use crate::ffs_api::models::{
+    error_response::ErrorResponse, move_resource::MoveResource, rename_resource::RenameResource,
+};
 
 use super::{
     models::{
@@ -7,7 +9,8 @@ use super::{
     },
     ApiConfig, ApiError, Result,
 };
-use reqwest::StatusCode;
+use reqwest::{Response, StatusCode};
+use serde::de::DeserializeOwned;
 use std::path::{Path, PathBuf};
 use tracing::{debug, info};
 
@@ -56,7 +59,7 @@ pub async fn get_user_info(api_config: &ApiConfig, token: &str) -> Result<UserRe
         .send()
         .await?;
 
-    Ok(response.json().await?)
+    transform_response(response, StatusCode::OK).await
 }
 
 pub async fn get_contents_of_folder(
@@ -75,16 +78,7 @@ pub async fn get_contents_of_folder(
         .send()
         .await?;
 
-    match response.status() {
-        StatusCode::OK => Ok(response.json().await?),
-        _ => {
-            let error_response = response.json::<ErrorResponse>().await?;
-            Err(ApiError::ResponseMalformed(format!(
-                "Error response with code '{}' and reason '{}'.",
-                error_response.status, error_response.message
-            )))
-        }
-    }
+    transform_response(response, StatusCode::OK).await
 }
 
 pub async fn create_directory(
@@ -109,14 +103,70 @@ pub async fn create_directory(
         .send()
         .await?;
 
-    match response.status() {
-        StatusCode::CREATED => Ok(response.json().await?),
-        _ => {
-            let error_response = response.json::<ErrorResponse>().await?;
-            Err(ApiError::ResponseMalformed(format!(
-                "Error response with code '{}' and reason '{}'.",
-                error_response.status, error_response.message
-            )))
-        }
+    transform_response(response, StatusCode::CREATED).await
+}
+
+pub async fn rename_inode(
+    api_config: &ApiConfig,
+    token: &str,
+    parent_path: &Path,
+    new_name: &str,
+) -> Result<InodeResource> {
+    let url = format!("{}/filesystem/rename", api_config.base_url);
+
+    debug!("Authenticating with token '{}'", token);
+
+    let body = RenameResource {
+        path: parent_path.to_str().unwrap().to_owned(),
+        new_name: new_name.to_owned(),
+    };
+
+    let response = reqwest::Client::new()
+        .put(url)
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .await?;
+
+    transform_response(response, StatusCode::OK).await
+}
+
+pub async fn move_inode(
+    api_config: &ApiConfig,
+    token: &str,
+    parent_path: &Path,
+    new_path: &Path,
+) -> Result<InodeResource> {
+    let url = format!("{}/filesystem/move", api_config.base_url);
+
+    debug!("Authenticating with token '{}'", token);
+
+    let body = MoveResource {
+        path: parent_path.to_str().unwrap().to_owned(),
+        new_path: new_path.to_str().unwrap().to_owned(),
+    };
+
+    let response = reqwest::Client::new()
+        .put(url)
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .await?;
+
+    transform_response(response, StatusCode::OK).await
+}
+
+async fn transform_response<T>(response: Response, expected_status: StatusCode) -> Result<T>
+where
+    T: DeserializeOwned,
+{
+    if expected_status == response.status() {
+        Ok(response.json().await?)
+    } else {
+        let error_response = response.json::<ErrorResponse>().await?;
+        Err(ApiError::ResponseMalformed(format!(
+            "Error response with code '{}' and reason '{}'.",
+            error_response.status, error_response.message
+        )))
     }
 }

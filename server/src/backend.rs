@@ -139,7 +139,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
             &self.api_config,
             &user.token,
             parent_path,
-            name.to_str().unwrap(), // why is this dangerous?
+            name.to_str().unwrap(),
         )
         .await
         .map_err(|err| match err {

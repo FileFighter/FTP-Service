@@ -9,9 +9,13 @@ use super::{
     },
     ApiConfig, ApiError, Result,
 };
-use reqwest::{Response, StatusCode};
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Response, StatusCode,
+};
 use serde::de::DeserializeOwned;
 use std::path::{Path, PathBuf};
+use tokio::io::AsyncRead;
 use tracing::{debug, info};
 
 pub async fn get_token_for_user(
@@ -172,6 +176,41 @@ pub async fn delete_inode(
     let response = reqwest::Client::new().delete(url).send().await?;
 
     transform_response(response, StatusCode::OK).await
+}
+
+pub async fn upload_file<ByteStream>(
+    api_config: &ApiConfig,
+    token: &str,
+    parent_path: &Path,
+    new_name: &str,
+    bytes: ByteStream,
+) -> Result<Vec<InodeResource>>
+where
+    ByteStream: AsyncRead + Send + Sync + 'static + Unpin,
+{
+    let url = format!("{}/upload", api_config.fhs_base_url);
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        "X-FF-PARENT-PATH",
+        HeaderValue::from_str(parent_path.to_str().unwrap()).unwrap(),
+    );
+    headers.insert(
+        "X-FF-RELATIVE-PATH",
+        HeaderValue::from_str(new_name).unwrap(),
+    );
+    headers.insert(
+        "Content-Type",
+        HeaderValue::from_static("multipart/form-data"),
+    );
+    let form = [("file", "todo" /* todo: should put bytes*/)];
+
+    let response = reqwest::Client::new()
+        .post(url)
+        .headers(headers)
+        .form(&form)
+        .send()
+        .await?;
+    todo!()
 }
 
 async fn transform_response<T>(response: Response, expected_status: StatusCode) -> Result<T>

@@ -466,6 +466,7 @@ dependencies = [
  "serde_json",
  "sha256",
  "thiserror",
+ "tokio",
  "tracing",
  "url",
 ]

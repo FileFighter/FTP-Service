@@ -62,16 +62,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         let path = path.as_ref().to_owned();
         let contents = get_contents_of_folder(&self.api_config, &user.token, path)
             .await
-            .map_err(|err| match err {
-                ReqwestError(err) => {
-                    warn!("Cought reqwest error {}", err);
-                    Error::new(ErrorKind::LocalError, "Internal Server Error")
-                }
-                ResponseMalformed(err) => {
-                    debug!("Filesystemservice error response: {}", err);
-                    Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
-                }
-            })?;
+            .map_err(transform_to_ftp_error)?;
 
         debug!("Found {} inodes", contents.inodes.len());
 
@@ -130,16 +121,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
 
         create_directory(&self.api_config, &user.token, parent_path.as_path(), name)
             .await
-            .map_err(|err| match err {
-                ReqwestError(err) => {
-                    warn!("Cought reqwest error {}", err);
-                    Error::new(ErrorKind::LocalError, "Internal Server Error")
-                }
-                ResponseMalformed(err) => {
-                    debug!("Filesystemservice error response: {}", err);
-                    Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
-                }
-            })?;
+            .map_err(transform_to_ftp_error)?;
         Ok(())
     }
 
@@ -159,16 +141,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         if from_name != to_name {
             let new_path = rename_inode(&self.api_config, &user.token, &from_path, to_name)
                 .await
-                .map_err(|err| match err {
-                    ReqwestError(err) => {
-                        warn!("Cought reqwest error {}", err);
-                        Error::new(ErrorKind::LocalError, "Internal Server Error")
-                    }
-                    ResponseMalformed(err) => {
-                        debug!("Filesystemservice error response: {}", err);
-                        Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
-                    }
-                })?
+                .map_err(transform_to_ftp_error)?
                 .path;
             from_path = PathBuf::from(new_path)
         };
@@ -176,16 +149,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         if from_parent != to_parent {
             move_inode(&self.api_config, &user.token, &from_path, &to_parent)
                 .await
-                .map_err(|err| match err {
-                    ReqwestError(err) => {
-                        warn!("Cought reqwest error {}", err);
-                        Error::new(ErrorKind::LocalError, "Internal Server Error")
-                    }
-                    ResponseMalformed(err) => {
-                        debug!("Filesystemservice error response: {}", err);
-                        Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
-                    }
-                })?;
+                .map_err(transform_to_ftp_error)?;
         };
 
         Ok(())
@@ -219,5 +183,18 @@ fn get_parent_and_name<'a>(path: &'a PathBuf) -> Result<(PathBuf, &'a str)> {
             ErrorKind::FileNameNotAllowedError,
             "Path for creating a directory must contain a parent and child component",
         )),
+    }
+}
+
+fn transform_to_ftp_error(error: ApiError) -> Error {
+    match error {
+        ReqwestError(err) => {
+            warn!("Cought reqwest error {}", err);
+            Error::new(ErrorKind::LocalError, "Internal Server Error")
+        }
+        ResponseMalformed(err) => {
+            debug!("Filesystemservice error response: {}", err);
+            Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
+        }
     }
 }

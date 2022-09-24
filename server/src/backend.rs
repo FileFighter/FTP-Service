@@ -22,13 +22,20 @@ pub struct FileFighter {
 }
 
 impl FileFighter {
+    #[must_use]
     pub fn new() -> Self {
-        FileFighter {
+        Self {
             api_config: ApiConfig {
                 fss_base_url: "http://localhost:8080/api".to_owned(),
                 fhs_base_url: "http://localhost:5000/data".to_owned(),
             },
         }
+    }
+}
+
+impl Default for FileFighter {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -149,7 +156,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
                 .await
                 .map_err(transform_to_ftp_error)?
                 .path;
-            from_path = PathBuf::from(new_path)
+            from_path = PathBuf::from(new_path);
         };
 
         if from_parent != to_parent {
@@ -187,7 +194,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
     }
 }
 
-fn get_parent_and_name<'a>(path: &'a PathBuf) -> Result<(PathBuf, &'a str)> {
+fn get_parent_and_name(path: &Path) -> Result<(PathBuf, &str)> {
     match (path.parent(), path.file_name()) {
         (Some(parent), Some(name)) => Ok((parent.to_path_buf(), name.to_str().unwrap())),
         (_, _) => Err(Error::new(

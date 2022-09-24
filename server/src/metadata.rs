@@ -2,7 +2,7 @@ use filefighter_api::ffs_api::models::{
     inode_resource::InodeResource, user_resource::UserResource,
 };
 use libunftp::storage::{Metadata, Result};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 #[derive(Debug)]
 pub struct InodeMetaData {

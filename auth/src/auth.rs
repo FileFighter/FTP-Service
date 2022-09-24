@@ -2,11 +2,10 @@ use crate::user::FileFighterUser;
 use async_trait::async_trait;
 use filefighter_api::ffs_api::{
     endpoints::{get_token_for_user, get_user_info},
-    models::user_resource,
     ApiConfig,
 };
 use libunftp::auth::{AuthenticationError, Authenticator, Credentials};
-use tracing::{debug, info, instrument};
+use tracing::{debug, instrument};
 
 #[derive(Debug)]
 pub struct FileFighterAuthenticator {
@@ -14,8 +13,9 @@ pub struct FileFighterAuthenticator {
 }
 
 impl FileFighterAuthenticator {
+    #[must_use]
     pub fn new() -> Self {
-        FileFighterAuthenticator {
+        Self {
             api_config: ApiConfig {
                 fss_base_url: "http://localhost:8080/api".to_owned(),
                 fhs_base_url: "http://localhost:5000/data".to_owned(),
@@ -25,6 +25,7 @@ impl FileFighterAuthenticator {
 }
 
 impl Default for FileFighterAuthenticator {
+    #[must_use]
     fn default() -> Self {
         Self::new()
     }

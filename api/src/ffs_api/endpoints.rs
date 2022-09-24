@@ -16,7 +16,7 @@ use reqwest::{
 use serde::de::DeserializeOwned;
 use std::path::{Path, PathBuf};
 use tokio::io::AsyncRead;
-use tracing::{debug, info};
+use tracing::debug;
 
 pub async fn get_token_for_user(
     api_config: &ApiConfig,
@@ -40,9 +40,9 @@ pub async fn get_token_for_user(
         StatusCode::CREATED => Ok(response
             .cookies()
             .find(|c| c.name() == "token")
-            .ok_or(ApiError::ResponseMalformed(
-                "Could not find cookie in response".to_owned(),
-            ))?
+            .ok_or_else(|| {
+                ApiError::ResponseMalformed("Could not find cookie in response".to_owned())
+            })?
             .value()
             .to_owned()),
         code => Err(ApiError::ResponseMalformed(format!(

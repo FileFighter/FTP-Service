@@ -1,9 +1,9 @@
 use crate::metadata::InodeMetaData;
 use async_trait::async_trait;
 use filefighter_api::ffs_api::{
-    endpoints::{create_directory, get_contents_of_folder, move_inode, rename_inode},
+    endpoints::{create_directory, delete_inode, get_contents_of_folder, move_inode, rename_inode},
     ApiConfig,
-    ApiError::{ReqwestError, ResponseMalformed},
+    ApiError::{self, ReqwestError, ResponseMalformed},
 };
 use libunftp::storage::{
     Error, ErrorKind, Fileinfo, Metadata, Result, StorageBackend, FEATURE_RESTART,
@@ -25,7 +25,8 @@ impl FileFighter {
     pub fn new() -> Self {
         FileFighter {
             api_config: ApiConfig {
-                base_url: "http://localhost:8080/api".to_owned(),
+                fss_base_url: "http://localhost:8080/api".to_owned(),
+                fhs_base_url: "http://localhost:5000/data".to_owned(),
             },
         }
     }
@@ -107,7 +108,12 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         user: &FileFighterUser,
         path: P,
     ) -> Result<()> {
-        todo!()
+        // Should this check if the inode to delete is really a file?
+        let path = path.as_ref().to_owned();
+        delete_inode(&self.api_config, &user.token, &path)
+            .await
+            .map_err(transform_to_ftp_error)?;
+        Ok(())
     }
 
     #[instrument(skip(self), level = "debug")]
@@ -161,7 +167,12 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         user: &FileFighterUser,
         path: P,
     ) -> Result<()> {
-        todo!()
+        // Should this check if the inode to delete is really a directory?
+        let path = path.as_ref().to_owned();
+        delete_inode(&self.api_config, &user.token, &path)
+            .await
+            .map_err(transform_to_ftp_error)?;
+        Ok(())
     }
 
     #[instrument(skip(self), level = "debug")]

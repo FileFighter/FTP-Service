@@ -19,7 +19,7 @@ pub async fn get_token_for_user(
     username: &str,
     password: &str,
 ) -> Result<String> {
-    let url = format!("{}/user/authenticate", api_config.base_url);
+    let url = format!("{}/user/authenticate", api_config.fss_base_url);
     let password = sha256::digest(format!("{}FileFighterWithSomeSalt", password)).to_uppercase();
 
     debug!("Authenticating with password '{}'", password);
@@ -49,7 +49,7 @@ pub async fn get_token_for_user(
 }
 
 pub async fn get_user_info(api_config: &ApiConfig, token: &str) -> Result<UserResource> {
-    let url = format!("{}/user/info", api_config.base_url);
+    let url = format!("{}/user/info", api_config.fss_base_url);
 
     debug!("Getting user info with token '{}'", token);
 
@@ -67,7 +67,7 @@ pub async fn get_contents_of_folder(
     token: &str,
     path: PathBuf,
 ) -> Result<ContentsResource> {
-    let url = format!("{}/filesystem/contents", api_config.base_url);
+    let url = format!("{}/filesystem/contents", api_config.fss_base_url);
 
     debug!("Authenticating with token '{}'", token);
 
@@ -87,7 +87,7 @@ pub async fn create_directory(
     parent_path: &Path,
     name: &str,
 ) -> Result<InodeResource> {
-    let url = format!("{}/filesystem/folder/create", api_config.base_url);
+    let url = format!("{}/filesystem/folder/create", api_config.fss_base_url);
 
     debug!("Authenticating with token '{}'", token);
 
@@ -112,7 +112,7 @@ pub async fn rename_inode(
     parent_path: &Path,
     new_name: &str,
 ) -> Result<InodeResource> {
-    let url = format!("{}/filesystem/rename", api_config.base_url);
+    let url = format!("{}/filesystem/rename", api_config.fss_base_url);
 
     debug!("Authenticating with token '{}'", token);
 
@@ -137,7 +137,7 @@ pub async fn move_inode(
     parent_path: &Path,
     new_path: &Path,
 ) -> Result<InodeResource> {
-    let url = format!("{}/filesystem/move", api_config.base_url);
+    let url = format!("{}/filesystem/move", api_config.fss_base_url);
 
     debug!("Authenticating with token '{}'", token);
 
@@ -152,6 +152,24 @@ pub async fn move_inode(
         .json(&body)
         .send()
         .await?;
+
+    transform_response(response, StatusCode::OK).await
+}
+
+pub async fn delete_inode(
+    api_config: &ApiConfig,
+    token: &str,
+    path: &Path,
+) -> Result<Vec<InodeResource>> {
+    let url = format!(
+        "{}/delete{}",
+        api_config.fhs_base_url,
+        path.to_str().unwrap()
+    );
+    let params = [("token", token)];
+
+    let url = reqwest::Url::parse_with_params(&url, &params).unwrap();
+    let response = reqwest::Client::new().delete(url).send().await?;
 
     transform_response(response, StatusCode::OK).await
 }

@@ -5,7 +5,8 @@ pub mod models;
 
 #[derive(Debug)]
 pub struct ApiConfig {
-    pub base_url: String,
+    pub fss_base_url: String,
+    pub fhs_base_url: String,
 }
 
 #[derive(thiserror::Error, Debug)]

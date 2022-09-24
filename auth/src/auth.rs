@@ -17,7 +17,8 @@ impl FileFighterAuthenticator {
     pub fn new() -> Self {
         FileFighterAuthenticator {
             api_config: ApiConfig {
-                base_url: "http://localhost:8080/api".to_owned(),
+                fss_base_url: "http://localhost:8080/api".to_owned(),
+                fhs_base_url: "http://localhost:5000/data".to_owned(),
             },
         }
     }

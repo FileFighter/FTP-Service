@@ -13,7 +13,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tokio::io::AsyncRead;
-use tracing::{debug, info, instrument, warn};
+use tracing::{debug, instrument, warn};
 use unftp_auth_filefighter::FileFighterUser;
 
 #[derive(Debug)]
@@ -161,13 +161,13 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         Ok(())
     }
 
+    // IDEA: check if inode at path is a directory
     #[instrument(skip(self), level = "debug")]
     async fn rmd<P: AsRef<Path> + Send + Debug>(
         &self,
         user: &FileFighterUser,
         path: P,
     ) -> Result<()> {
-        // Should this check if the inode to delete is really a directory?
         let path = path.as_ref().to_owned();
         delete_inode(&self.api_config, &user.token, &path)
             .await
@@ -175,14 +175,14 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         Ok(())
     }
 
+    // TODO: normalize path without interacting with the fs (. and .. // )
+    // TODO: check that path is a folder
     #[instrument(skip(self), level = "debug")]
     async fn cwd<P: AsRef<Path> + Send + Debug>(
         &self,
         user: &FileFighterUser,
         path: P,
     ) -> Result<()> {
-        // TODO: normalize path without interacting with the fs (. and .. // )
-        // TODO: check that path is a folder
         Ok(())
     }
 }

@@ -1,7 +1,10 @@
 use crate::metadata::InodeMetaData;
 use async_trait::async_trait;
 use filefighter_api::ffs_api::{
-    endpoints::{create_directory, delete_inode, get_contents_of_folder, move_inode, rename_inode},
+    endpoints::{
+        create_directory, delete_inode, get_contents_of_folder, move_inode, rename_inode,
+        upload_file,
+    },
     ApiConfig,
     ApiError::{self, ReqwestError, ResponseMalformed},
 };
@@ -106,7 +109,14 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         FilePath: AsRef<Path> + Send,
         ByteStream: AsyncRead + Send + Sync + 'static + Unpin,
     {
-        todo!()
+        let path = path.as_ref().to_owned();
+        let (parent_path, name) = get_parent_and_name(&path)?;
+
+        upload_file(&self.api_config, &user.token, &parent_path, &name, bytes)
+            .await
+            .map_err(transform_to_ftp_error)?;
+
+        Ok(start_pos) // todo: what does this even mean?
     }
 
     #[instrument(skip(self), level = "debug")]

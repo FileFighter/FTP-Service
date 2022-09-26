@@ -16,6 +16,8 @@ use reqwest::{
 use serde::de::DeserializeOwned;
 use std::path::Path;
 use tokio::io::AsyncRead;
+use tokio_stream::StreamExt;
+use tokio_util::io::ReaderStream;
 use tracing::debug;
 
 // Compatibility trait lets us call `compat()` on a futures::io::AsyncRead
@@ -211,6 +213,8 @@ pub async fn upload_file<ByteStream>(
 where
     ByteStream: AsyncRead + Send + Sync + 'static + Unpin,
 {
+    let stream = ReaderStream::new(bytes);
+
     let url = format!("{}/upload", api_config.fhs_base_url);
     let params = [("token", token)];
     let url = reqwest::Url::parse_with_params(&url, &params).unwrap();
@@ -225,9 +229,8 @@ where
     );
     headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
 
-    let some_file = multipart::Part::text("todo")
-        .file_name("file")
-        .mime_str("text/plain")?;
+    let some_file = multipart::Part::stream(reqwest::Body::wrap_stream(stream)).file_name("file");
+    // IDEA: add a mimetype, guess from filename
     let form = multipart::Form::new().part("file", some_file);
 
     let response = reqwest::Client::new()
@@ -256,7 +259,6 @@ pub async fn download_file<ByteStream>(
     let url = reqwest::Url::parse_with_params(&url, &params).unwrap();
 
     let download = reqwest::get(url).await?.error_for_status()?;
-
     let download = download.bytes_stream();
 
     // Convert the stream into an futures::io::AsyncRead.
@@ -268,7 +270,8 @@ pub async fn download_file<ByteStream>(
     // Convert the futures::io::AsyncRead into a tokio::io::AsyncRead.
     let download = download.compat();
 
-    Ok(Box::new(download.get_mut()))
+    //Ok(Box::new(download.get_mut()))
+    todo!()
 }
 
 async fn transform_response<T>(response: Response, expected_status: StatusCode) -> Result<T>

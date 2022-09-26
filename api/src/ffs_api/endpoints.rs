@@ -10,13 +10,21 @@ use super::{
     ApiConfig, ApiError, Result,
 };
 use reqwest::{
-    header::{HeaderMap, HeaderValue},
-    Response, StatusCode,
+    header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE},
+    multipart, Response, StatusCode,
 };
 use serde::de::DeserializeOwned;
 use std::path::Path;
 use tokio::io::AsyncRead;
 use tracing::debug;
+
+// Compatibility trait lets us call `compat()` on a futures::io::AsyncRead
+// to convert it into a tokio::io::AsyncRead.
+use tokio_util::compat::FuturesAsyncReadCompatExt;
+
+// Lets us call into_async_read() to convert a futures::stream::Stream into a
+// futures::io::AsyncRead.
+use futures::stream::TryStreamExt;
 
 pub async fn get_token_for_user(
     api_config: &ApiConfig,
@@ -204,6 +212,8 @@ where
     ByteStream: AsyncRead + Send + Sync + 'static + Unpin,
 {
     let url = format!("{}/upload", api_config.fhs_base_url);
+    let params = [("token", token)];
+    let url = reqwest::Url::parse_with_params(&url, &params).unwrap();
     let mut headers = HeaderMap::new();
     headers.insert(
         "X-FF-PARENT-PATH",
@@ -213,19 +223,52 @@ where
         "X-FF-RELATIVE-PATH",
         HeaderValue::from_str(new_name).unwrap(),
     );
-    headers.insert(
-        "Content-Type",
-        HeaderValue::from_static("multipart/form-data"),
-    );
-    let form = [("file", "todo" /* todo: should put bytes*/)];
+    headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
+
+    let some_file = multipart::Part::text("todo")
+        .file_name("file")
+        .mime_str("text/plain")?;
+    let form = multipart::Form::new().part("file", some_file);
 
     let response = reqwest::Client::new()
         .post(url)
+        .multipart(form)
         .headers(headers)
-        .form(&form)
         .send()
         .await?;
-    todo!()
+
+    transform_response(response, StatusCode::OK).await
+}
+
+pub async fn download_file<ByteStream>(
+    api_config: &ApiConfig,
+    token: &str,
+    path: &Path,
+) -> Result<Box<dyn AsyncRead + Send + Sync + Unpin>> {
+    // inspired by https://github.com/benkay86/async-applied/blob/master/reqwest-tokio-compat/src/main.rs
+    // but not working
+    let url = format!(
+        "{}/download{}",
+        api_config.fhs_base_url,
+        path.to_str().unwrap()
+    );
+    let params = [("token", token)];
+    let url = reqwest::Url::parse_with_params(&url, &params).unwrap();
+
+    let download = reqwest::get(url).await?.error_for_status()?;
+
+    let download = download.bytes_stream();
+
+    // Convert the stream into an futures::io::AsyncRead.
+    // We must first convert the reqwest::Error into an futures::io::Error.
+    let download = download
+        .map_err(|e| futures::io::Error::new(futures::io::ErrorKind::Other, e))
+        .into_async_read();
+
+    // Convert the futures::io::AsyncRead into a tokio::io::AsyncRead.
+    let download = download.compat();
+
+    Ok(Box::new(download.get_mut()))
 }
 
 async fn transform_response<T>(response: Response, expected_status: StatusCode) -> Result<T>
@@ -238,7 +281,8 @@ where
         let error_response = response.json::<ErrorResponse>().await?;
         Err(ApiError::ResponseMalformed(format!(
             "Error response with code '{}' and reason '{}'.",
-            error_response.status, error_response.message
+            error_response.status.unwrap_or("unkown".to_string()),
+            error_response.message
         )))
     }
 }

@@ -15,8 +15,8 @@ use reqwest::{
 };
 use serde::de::DeserializeOwned;
 use std::path::Path;
-use tokio::io::AsyncRead;
-use tokio_util::io::ReaderStream;
+use tokio::{io::AsyncRead, net::TcpStream};
+use tokio_util::io::{ReaderStream, StreamReader};
 use tracing::debug;
 
 // Compatibility trait lets us call `compat()` on a futures::io::AsyncRead
@@ -251,13 +251,12 @@ where
     transform_response(response, StatusCode::OK).await
 }
 
-pub async fn download_file<ByteStream>(
+pub async fn download_file(
     api_config: &ApiConfig,
     token: &str,
     path: &Path,
 ) -> Result<Box<dyn AsyncRead + Send + Sync + Unpin>> {
     // inspired by https://github.com/benkay86/async-applied/blob/master/reqwest-tokio-compat/src/main.rs
-    // but not working
     let url = format!(
         "{}/download{}",
         api_config.fhs_base_url,
@@ -266,20 +265,15 @@ pub async fn download_file<ByteStream>(
     let params = [("token", token)];
     let url = reqwest::Url::parse_with_params(&url, &params).unwrap();
 
+    // get the content as stream and map the error so tokio can use `from` on it
     let download = reqwest::get(url).await?.error_for_status()?;
-    let download = download.bytes_stream();
-
-    // Convert the stream into an futures::io::AsyncRead.
-    // We must first convert the reqwest::Error into an futures::io::Error.
     let download = download
-        .map_err(|e| futures::io::Error::new(futures::io::ErrorKind::Other, e))
-        .into_async_read();
+        .bytes_stream()
+        .map_err(|e| futures::io::Error::new(futures::io::ErrorKind::Other, e));
 
-    // Convert the futures::io::AsyncRead into a tokio::io::AsyncRead.
-    let download = download.compat();
-
-    //Ok(Box::new(download.get_mut()))
-    todo!()
+    // build a stream reader which allows us to use async read on a stream.
+    let stream_reader = StreamReader::new(download);
+    Ok(Box::new(stream_reader))
 }
 
 async fn transform_response<T>(response: Response, expected_status: StatusCode) -> Result<T>

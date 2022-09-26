@@ -2,8 +2,8 @@ use crate::metadata::InodeMetaData;
 use async_trait::async_trait;
 use filefighter_api::ffs_api::{
     endpoints::{
-        create_directory, delete_inode, get_contents_of_folder, get_inode, move_inode,
-        rename_inode, upload_file,
+        create_directory, delete_inode, download_file, get_contents_of_folder, get_inode,
+        move_inode, rename_inode, upload_file,
     },
     ApiConfig,
     ApiError::{self, ReqwestError, ResponseMalformed},
@@ -100,10 +100,24 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         path: P,
         start_pos: u64,
     ) -> Result<Box<dyn AsyncRead + Send + Sync + Unpin>> {
-        todo!()
+        // IDEA: maybe implement this by skipping the first bytes
+        if start_pos != 0 {
+            error!("Gets at offset not equal to 0 are not implemented.");
+            return Err(Error::new(
+                ErrorKind::CommandNotImplemented,
+                "Gets at offset not equal to 0 are not implemented.",
+            ));
+        }
+
+        // TODO: change that everywhere to as_ref() and without &
+        let path = path.as_ref().to_owned();
+
+        download_file(&self.api_config, &user.token, &path)
+            .await
+            .map_err(transform_to_ftp_error)
     }
 
-    #[instrument(skip(bytes, path))]
+    #[instrument(skip(self, bytes))]
     async fn put<FilePath, ByteStream>(
         &self,
         user: &FileFighterUser,
@@ -112,7 +126,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         start_pos: u64,
     ) -> Result<u64>
     where
-        FilePath: AsRef<Path> + Send,
+        FilePath: AsRef<Path> + Send + Debug,
         ByteStream: AsyncRead + Send + Sync + 'static + Unpin,
     {
         // TODO: remove this by implementing
@@ -242,7 +256,7 @@ fn transform_to_ftp_error(error: ApiError) -> Error {
             Error::new(ErrorKind::LocalError, "Internal Server Error")
         }
         ResponseMalformed(err) => {
-            debug!("Filesystemservice error response: {}", err);
+            warn!("Filesystemservice error response: {}", err);
             Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
         }
     }

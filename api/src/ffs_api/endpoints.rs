@@ -10,7 +10,7 @@ use super::{
     ApiConfig, ApiError, Result,
 };
 use reqwest::{
-    header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE},
+    header::{HeaderMap, HeaderValue, ACCEPT},
     multipart, Response, StatusCode,
 };
 use serde::de::DeserializeOwned;

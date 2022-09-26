@@ -2,8 +2,8 @@ use crate::metadata::InodeMetaData;
 use async_trait::async_trait;
 use filefighter_api::ffs_api::{
     endpoints::{
-        create_directory, delete_inode, get_contents_of_folder, move_inode, rename_inode,
-        upload_file,
+        create_directory, delete_inode, get_contents_of_folder, get_inode, move_inode,
+        rename_inode, upload_file,
     },
     ApiConfig,
     ApiError::{self, ReqwestError, ResponseMalformed},
@@ -16,7 +16,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tokio::io::AsyncRead;
-use tracing::{debug, instrument, warn};
+use tracing::{debug, error, instrument, warn};
 use unftp_auth_filefighter::FileFighterUser;
 
 #[derive(Debug)]
@@ -115,6 +115,15 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         FilePath: AsRef<Path> + Send,
         ByteStream: AsyncRead + Send + Sync + 'static + Unpin,
     {
+        // TODO: remove this by implementing
+        if start_pos != 0 {
+            error!("Puts at offset not equal to 0 are not implemented.");
+            return Err(Error::new(
+                ErrorKind::CommandNotImplemented,
+                "Puts at offset not equal to 0 are not implemented.",
+            ));
+        }
+
         let path = path.as_ref().to_owned();
         let (parent_path, name) = get_parent_and_name(&path)?;
 
@@ -122,7 +131,11 @@ impl StorageBackend<FileFighterUser> for FileFighter {
             .await
             .map_err(transform_to_ftp_error)?;
 
-        Ok(start_pos) // todo: what does this even mean?
+        let inode = get_inode(&self.api_config, &path, &user.token)
+            .await
+            .map_err(transform_to_ftp_error)?;
+
+        Ok(inode.size)
     }
 
     #[instrument(skip(self), level = "debug")]

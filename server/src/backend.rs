@@ -25,8 +25,8 @@ pub struct FileFighter {
 }
 
 impl FileFighter {
-    #[must_use]
     // IDEA: this should be passed down via a commandline options
+    #[must_use]
     pub fn new() -> Self {
         Self {
             api_config: ApiConfig {

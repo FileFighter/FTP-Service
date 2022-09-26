@@ -462,6 +462,7 @@ name = "filefighter-api"
 version = "1.0.0"
 dependencies = [
  "futures",
+ "new_mime_guess",
  "reqwest",
  "serde",
  "serde_json",
@@ -1005,6 +1006,16 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "tempfile",
+]
+
+[[package]]
+name = "new_mime_guess"
+version = "4.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2d684d1b59e0dc07b37e2203ef576987473288f530082512aff850585c61b1f"
+dependencies = [
+ "mime",
+ "unicase",
 ]
 
 [[package]]

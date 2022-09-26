@@ -16,7 +16,6 @@ use reqwest::{
 use serde::de::DeserializeOwned;
 use std::path::Path;
 use tokio::io::AsyncRead;
-use tokio_stream::StreamExt;
 use tokio_util::io::ReaderStream;
 use tracing::debug;
 
@@ -203,6 +202,7 @@ pub async fn delete_inode(
     transform_response(response, StatusCode::OK).await
 }
 
+// IDEA: fix usage of relative paths to uploaded files. (When to create parent folder and when not)
 pub async fn upload_file<ByteStream>(
     api_config: &ApiConfig,
     token: &str,
@@ -218,6 +218,8 @@ where
     let url = format!("{}/upload", api_config.fhs_base_url);
     let params = [("token", token)];
     let url = reqwest::Url::parse_with_params(&url, &params).unwrap();
+
+    // set required headers
     let mut headers = HeaderMap::new();
     headers.insert(
         "X-FF-PARENT-PATH",
@@ -229,8 +231,14 @@ where
     );
     headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
 
-    let some_file = multipart::Part::stream(reqwest::Body::wrap_stream(stream)).file_name("file");
-    // IDEA: add a mimetype, guess from filename
+    // Stream the content as multipart stream
+    let some_file = multipart::Part::stream(reqwest::Body::wrap_stream(stream))
+        .file_name("file")
+        .mime_str(
+            &new_mime_guess::from_path(new_name)
+                .first_or_octet_stream()
+                .to_string(),
+        )?;
     let form = multipart::Form::new().part("file", some_file);
 
     let response = reqwest::Client::new()

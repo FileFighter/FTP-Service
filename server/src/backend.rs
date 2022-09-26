@@ -26,6 +26,7 @@ pub struct FileFighter {
 
 impl FileFighter {
     #[must_use]
+    // IDEA: this should be passed down via a commandline options
     pub fn new() -> Self {
         Self {
             api_config: ApiConfig {
@@ -57,7 +58,12 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         user: &FileFighterUser,
         path: P,
     ) -> Result<Self::Metadata> {
-        todo!()
+        let path = path.as_ref().to_owned();
+        let inode = get_inode(&self.api_config, &path, &user.token)
+            .await
+            .map_err(transform_to_ftp_error)?;
+
+        Ok(InodeMetaData::from(&inode, user.id))
     }
 
     #[instrument(skip(self), level = "debug")]
@@ -71,7 +77,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         <Self as StorageBackend<FileFighterUser>>::Metadata: Metadata,
     {
         let path = path.as_ref().to_owned();
-        let contents = get_contents_of_folder(&self.api_config, &user.token, path)
+        let contents = get_contents_of_folder(&self.api_config, &user.token, &path)
             .await
             .map_err(transform_to_ftp_error)?;
 
@@ -82,7 +88,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
             .iter()
             .map(|inode| Fileinfo {
                 path: PathBuf::from(&inode.path),
-                metadata: InodeMetaData::new(inode, &contents.owner),
+                metadata: InodeMetaData::from(inode, contents.owner.id),
             })
             .collect())
     }
@@ -148,6 +154,8 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         Ok(())
     }
 
+    /// Used to rename and move inodes.
+    /// TODO: fix this by implementing a custom endpoint in the fss
     #[instrument(skip(self), level = "debug")]
     async fn rename<P: AsRef<Path> + Send + Debug>(
         &self,

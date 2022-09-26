@@ -14,7 +14,7 @@ use reqwest::{
     multipart, Response, StatusCode,
 };
 use serde::de::DeserializeOwned;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use tokio::io::AsyncRead;
 use tracing::debug;
 
@@ -74,10 +74,25 @@ pub async fn get_user_info(api_config: &ApiConfig, token: &str) -> Result<UserRe
     transform_response(response, StatusCode::OK).await
 }
 
+pub async fn get_inode(api_config: &ApiConfig, path: &Path, token: &str) -> Result<InodeResource> {
+    let url = format!("{}/filesystem/info", api_config.fss_base_url);
+
+    debug!("Getting inode by path '{}'", path.display());
+
+    let response = reqwest::Client::new()
+        .get(url)
+        .bearer_auth(token)
+        .header("X-FF-PATH", path.to_str().unwrap())
+        .send()
+        .await?;
+
+    transform_response(response, StatusCode::OK).await
+}
+
 pub async fn get_contents_of_folder(
     api_config: &ApiConfig,
     token: &str,
-    path: PathBuf,
+    path: &Path,
 ) -> Result<ContentsResource> {
     let url = format!("{}/filesystem/contents", api_config.fss_base_url);
 

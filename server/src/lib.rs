@@ -32,6 +32,9 @@
 
 mod backend;
 mod metadata;
+mod utils;
+#[cfg(test)]
+pub mod utils_test;
 
 // reexports
 pub use backend::FileFighter;

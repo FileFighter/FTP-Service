@@ -15,13 +15,9 @@ use reqwest::{
 };
 use serde::de::DeserializeOwned;
 use std::path::Path;
-use tokio::{io::AsyncRead, net::TcpStream};
+use tokio::io::AsyncRead;
 use tokio_util::io::{ReaderStream, StreamReader};
 use tracing::debug;
-
-// Compatibility trait lets us call `compat()` on a futures::io::AsyncRead
-// to convert it into a tokio::io::AsyncRead.
-use tokio_util::compat::FuturesAsyncReadCompatExt;
 
 // Lets us call into_async_read() to convert a futures::stream::Stream into a
 // futures::io::AsyncRead.

@@ -1,4 +1,4 @@
-use crate::user::FileFighterUser;
+use super::user::FileFighterUser;
 use async_trait::async_trait;
 use filefighter_api::ffs_api::{
     endpoints::{get_token_for_user, get_user_info},

@@ -1,5 +1,5 @@
 [package]
-name = "unftp-sbe-filefighter"
+name = "unftp-filefighter"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,6 +9,5 @@ async-trait = "0.1.56"
 libunftp = "0.18.5"
 tokio = "1.21.1"
 tracing = "0.1.36"
-# own auth
-unftp-auth-filefighter = { path = "../auth" }
+url = "2.3.1"
 filefighter-api = { path = "../api" }

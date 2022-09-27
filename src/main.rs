@@ -1,8 +1,7 @@
 use std::sync::Arc;
 use tracing::{info, metadata::LevelFilter, Level};
 use tracing_subscriber::{filter::Targets, fmt::time::SystemTime, prelude::*};
-use unftp_auth_filefighter::*;
-use unftp_sbe_filefighter::FileFighter;
+use unftp_filefighter::{FileFighter, FileFighterAuthenticator};
 
 #[tokio::main]
 pub async fn main() {
@@ -19,8 +18,7 @@ pub async fn main() {
                 // Own crates debug
                 .with_target("filefighter_api", LevelFilter::DEBUG)
                 .with_target("ftp_fighter", LevelFilter::DEBUG)
-                .with_target("unftp_auth_filefighter", LevelFilter::DEBUG)
-                .with_target("unftp_sbe_filefighter", LevelFilter::DEBUG)
+                .with_target("unftp_filefighter", LevelFilter::DEBUG)
                 // Disable unauth logs
                 .with_target("libunftp", LevelFilter::OFF)
                 .with_default(Level::INFO),

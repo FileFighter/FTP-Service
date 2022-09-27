@@ -1,12 +1,13 @@
 use libunftp::storage::{Error, ErrorKind::FileNameNotAllowedError, Result};
 use std::path::{Component, Path, PathBuf};
+use tracing::debug;
 
 /// Normalizing (without disk access) and validating Path
 ///
 /// The path is validated so that the normalized Path contains no relative components.
 pub fn validate_and_normalize_path<P: AsRef<Path>>(path: P) -> Result<PathBuf> {
     let normalized_path = normalize_path(path);
-    println!("Normalized: {}", normalized_path.display());
+    debug!("Normalized: {}", normalized_path.display());
 
     let path_as_str = normalized_path
         .to_str()

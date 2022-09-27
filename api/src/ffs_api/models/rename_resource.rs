@@ -1,7 +1,7 @@
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RenameResource {
     #[serde(rename = "newName")]
-    new_name: String,
+    pub new_name: String,
     #[serde(rename = "path")]
-    path: String,
+    pub path: String,
 }

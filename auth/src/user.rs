@@ -17,7 +17,6 @@ impl Debug for FileFighterUser {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("FileFighterUser")
             .field("username", &self.username)
-            .field("token", &"**hidden**".to_owned())
             .finish()
     }
 }

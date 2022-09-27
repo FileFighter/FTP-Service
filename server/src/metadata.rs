@@ -1,8 +1,6 @@
-use filefighter_api::ffs_api::models::{
-    inode_resource::InodeResource, user_resource::UserResource,
-};
+use filefighter_api::ffs_api::models::inode_resource::InodeResource;
 use libunftp::storage::{Metadata, Result};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 #[derive(Debug)]
 pub struct InodeMetaData {
@@ -45,14 +43,14 @@ impl Metadata for InodeMetaData {
 }
 
 impl InodeMetaData {
-    pub fn new(inode: &InodeResource, owner: &UserResource) -> Self {
+    pub fn from(inode: &InodeResource, owner_id: u32) -> Self {
         Self {
             len: inode.size,
             is_file: inode.mime_type.is_some(),
             // TODO: does this work?
             modified: UNIX_EPOCH + Duration::from_secs(inode.last_updated),
-            gid: owner.id,
-            uid: owner.id,
+            gid: owner_id,
+            uid: owner_id,
         }
     }
 }

@@ -1,4 +1,4 @@
-use super::metadata::InodeMetaData;
+use super::{metadata::InodeMetaData, utils::validate_and_normalize_path};
 use crate::auth::user::FileFighterUser;
 use async_trait::async_trait;
 use filefighter_api::ffs_api::{
@@ -58,7 +58,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         user: &FileFighterUser,
         path: P,
     ) -> Result<Self::Metadata> {
-        let path = path.as_ref().to_owned();
+        let path = validate_and_normalize_path(path)?;
         let inode = get_inode(&self.api_config, &path, &user.token)
             .await
             .map_err(transform_to_ftp_error)?;
@@ -76,7 +76,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         P: AsRef<Path> + Send + Debug,
         <Self as StorageBackend<FileFighterUser>>::Metadata: Metadata,
     {
-        let path = path.as_ref().to_owned();
+        let path = validate_and_normalize_path(path)?;
         let contents = get_contents_of_folder(&self.api_config, &user.token, &path)
             .await
             .map_err(transform_to_ftp_error)?;
@@ -109,8 +109,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
             ));
         }
 
-        // TODO: change that everywhere to as_ref() and without &
-        let path = path.as_ref().to_owned();
+        let path = validate_and_normalize_path(path)?;
 
         download_file(&self.api_config, &user.token, &path)
             .await
@@ -138,10 +137,10 @@ impl StorageBackend<FileFighterUser> for FileFighter {
             ));
         }
 
-        let path = path.as_ref().to_owned();
+        let path = validate_and_normalize_path(path)?;
         let (parent_path, name) = get_parent_and_name(&path)?;
 
-        upload_file(&self.api_config, &user.token, &parent_path, &name, bytes)
+        upload_file(&self.api_config, &user.token, &parent_path, name, bytes)
             .await
             .map_err(transform_to_ftp_error)?;
 
@@ -159,7 +158,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         path: P,
     ) -> Result<()> {
         // Should this check if the inode to delete is really a file?
-        let path = path.as_ref().to_owned();
+        let path = validate_and_normalize_path(path)?;
         delete_inode(&self.api_config, &user.token, &path)
             .await
             .map_err(transform_to_ftp_error)?;
@@ -172,7 +171,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         user: &FileFighterUser,
         path: P,
     ) -> Result<()> {
-        let path = path.as_ref().to_owned();
+        let path = validate_and_normalize_path(path)?;
         let (parent_path, name) = get_parent_and_name(&path)?;
 
         create_directory(&self.api_config, &user.token, parent_path.as_path(), name)
@@ -190,8 +189,8 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         from: P,
         to: P,
     ) -> Result<()> {
-        let mut from_path = from.as_ref().to_owned();
-        let to_path = to.as_ref().to_owned();
+        let mut from_path = validate_and_normalize_path(from)?;
+        let to_path = validate_and_normalize_path(to)?;
 
         let (from_parent, from_name) = get_parent_and_name(&from_path)?;
         let (to_parent, to_name) = get_parent_and_name(&to_path)?;
@@ -220,22 +219,21 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         user: &FileFighterUser,
         path: P,
     ) -> Result<()> {
-        let path = path.as_ref().to_owned();
+        let path = validate_and_normalize_path(path)?;
         delete_inode(&self.api_config, &user.token, &path)
             .await
             .map_err(transform_to_ftp_error)?;
         Ok(())
     }
 
-    // TODO: normalize path without interacting with the fs (. and .. // )
     // TODO: check that path is a folder
     #[instrument(skip(self), level = "debug")]
     async fn cwd<P: AsRef<Path> + Send + Debug>(
         &self,
         _user: &FileFighterUser,
-        _path: P,
+        path: P,
     ) -> Result<()> {
-        Ok(())
+        validate_and_normalize_path(path).map(|_| ())
     }
 }
 

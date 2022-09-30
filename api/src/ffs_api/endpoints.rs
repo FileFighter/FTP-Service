@@ -231,9 +231,9 @@ where
     let some_file = multipart::Part::stream(reqwest::Body::wrap_stream(stream))
         .file_name("file")
         .mime_str(
-            &new_mime_guess::from_path(new_name)
+            new_mime_guess::from_path(new_name)
                 .first_or_octet_stream()
-                .to_string(),
+                .as_ref(),
         )?;
     let form = multipart::Form::new().part("file", some_file);
 
@@ -282,7 +282,9 @@ where
         let error_response = response.json::<ErrorResponse>().await?;
         Err(ApiError::ResponseMalformed(format!(
             "Error response with code '{}' and reason '{}'.",
-            error_response.status.unwrap_or("unkown".to_string()),
+            error_response
+                .status
+                .unwrap_or_else(|| "unkown".to_string()),
             error_response.message
         )))
     }

@@ -5,7 +5,7 @@ use filefighter_api::ffs_api::{
     ApiConfig,
 };
 use libunftp::auth::{AuthenticationError, Authenticator, Credentials};
-use tracing::{debug, instrument};
+use tracing::{debug, instrument, warn};
 
 #[derive(Debug)]
 pub struct FileFighterAuthenticator {
@@ -56,7 +56,7 @@ impl Authenticator<FileFighterUser> for FileFighterAuthenticator {
         let token = get_token_for_user(&self.api_config, username, password)
             .await
             .map_err(|err| {
-                debug!("Cought Error: {}", err);
+                warn!("Cought Error: {}", err);
                 AuthenticationError::new(err.to_string())
             })?;
 
@@ -65,7 +65,7 @@ impl Authenticator<FileFighterUser> for FileFighterAuthenticator {
         let user_ressource = get_user_info(&self.api_config, &token)
             .await
             .map_err(|err| {
-                debug!("Cought Error: {}", err);
+                warn!("Cought Error: {}", err);
                 AuthenticationError::BadUser
             })?;
 

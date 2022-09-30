@@ -32,7 +32,7 @@ pub async fn main() {
         Arc::new(FileFighterAuthenticator::new()),
     )
     .greeting("FileFighter FTP server")
-    .passive_ports(50000..65535)
+    .passive_ports(5000..5100)
     .listen("127.0.0.1:2121")
     .await
     .unwrap();

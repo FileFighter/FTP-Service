@@ -25,7 +25,7 @@ pub fn validate_and_normalize_path<P: AsRef<Path>>(path: P) -> Result<PathBuf> {
 
 /// Improve the path to try remove and solve .. token.
 ///
-/// https://github.com/Canop/broot/blob/master/src/path/normalize.rs
+/// Taken from [here](https://github.com/Canop/broot/blob/master/src/path/normalize.rs)
 /// This assumes that `a/b/../c` is `a/c` which might be different from
 /// what the OS would have chosen when b is a link. This is OK
 /// for broot verb arguments but can't be generally used elsewhere
@@ -44,7 +44,10 @@ fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
                     normalized.push(component);
                 }
             }
-            _ => {
+            Component::Prefix(_)
+            | Component::RootDir
+            | Component::CurDir
+            | Component::Normal(_) => {
                 normalized.push(component);
             }
         }

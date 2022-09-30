@@ -140,7 +140,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         let path = validate_and_normalize_path(path)?;
         let (parent_path, name) = get_parent_and_name(&path)?;
 
-        upload_file(&self.api_config, &user.token, &parent_path, &name, bytes)
+        upload_file(&self.api_config, &user.token, &parent_path, name, bytes)
             .await
             .map_err(transform_to_ftp_error)?;
 
@@ -231,7 +231,7 @@ impl StorageBackend<FileFighterUser> for FileFighter {
     async fn cwd<P: AsRef<Path> + Send + Debug>(
         &self,
         _user: &FileFighterUser,
-        _path: P,
+        path: P,
     ) -> Result<()> {
         validate_and_normalize_path(path).map(|_| ())
     }

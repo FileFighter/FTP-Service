@@ -30,11 +30,9 @@
 // kinda useless lint because qualified usages are ugly.
 #![allow(clippy::module_name_repetitions)]
 
+mod auth;
 mod backend;
-mod metadata;
-mod utils;
-#[cfg(test)]
-pub mod utils_test;
 
 // reexports
-pub use backend::FileFighter;
+pub use auth::authenticator::FileFighterAuthenticator;
+pub use backend::storage_backend::FileFighter;

@@ -1,4 +1,5 @@
-use crate::{metadata::InodeMetaData, utils::validate_and_normalize_path};
+use super::{metadata::InodeMetaData, utils::validate_and_normalize_path};
+use crate::auth::user::FileFighterUser;
 use async_trait::async_trait;
 use filefighter_api::ffs_api::{
     endpoints::{
@@ -17,7 +18,6 @@ use std::{
 };
 use tokio::io::AsyncRead;
 use tracing::{debug, error, instrument, warn};
-use unftp_auth_filefighter::FileFighterUser;
 
 #[derive(Debug)]
 pub struct FileFighter {
@@ -230,8 +230,8 @@ impl StorageBackend<FileFighterUser> for FileFighter {
     #[instrument(skip(self), level = "debug")]
     async fn cwd<P: AsRef<Path> + Send + Debug>(
         &self,
-        user: &FileFighterUser,
-        path: P,
+        _user: &FileFighterUser,
+        _path: P,
     ) -> Result<()> {
         validate_and_normalize_path(path).map(|_| ())
     }

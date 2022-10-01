@@ -6,8 +6,8 @@ use tracing::metadata::LevelFilter;
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    /// Url to listen on eg. 0.0.0.0:2121
-    #[arg(short, long, env = "FTP_SERVICE_URL")]
+    /// Url to listen on
+    #[arg(short, long, env = "FTP_SERVICE_URL", default_value_t = String::from("0.0.0.0:2121"))]
     pub url: String,
 
     /// Passive port range start to use for file transfers

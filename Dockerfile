@@ -8,8 +8,6 @@ RUN apk add --no-cache openssl-dev musl-dev
 # run
 RUN cargo clean
 RUN cargo build --release
-RUN ls -la
-RUN ls -la target
 
 # run in scratch
 FROM alpine:latest

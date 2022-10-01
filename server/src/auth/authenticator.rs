@@ -9,19 +9,7 @@ use tracing::{debug, instrument, warn};
 
 #[derive(Debug)]
 pub struct FileFighterAuthenticator {
-    api_config: ApiConfig,
-}
-
-impl FileFighterAuthenticator {
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            api_config: ApiConfig {
-                fss_base_url: "http://localhost:8080/api".to_owned(),
-                fhs_base_url: "http://localhost:5000/data".to_owned(),
-            },
-        }
-    }
+    pub api_config: ApiConfig,
 }
 
 #[async_trait]

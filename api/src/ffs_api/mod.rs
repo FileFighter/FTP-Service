@@ -3,7 +3,7 @@ use reqwest::Error;
 pub mod endpoints;
 pub mod models;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ApiConfig {
     pub fss_base_url: String,
     pub fhs_base_url: String,

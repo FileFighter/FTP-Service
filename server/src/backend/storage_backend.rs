@@ -21,26 +21,7 @@ use tracing::{debug, error, instrument, warn};
 
 #[derive(Debug)]
 pub struct FileFighter {
-    api_config: ApiConfig,
-}
-
-impl FileFighter {
-    // IDEA: this should be passed down via a commandline options
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            api_config: ApiConfig {
-                fss_base_url: "http://localhost:8080/api".to_owned(),
-                fhs_base_url: "http://localhost:5000/data".to_owned(),
-            },
-        }
-    }
-}
-
-impl Default for FileFighter {
-    fn default() -> Self {
-        Self::new()
-    }
+    pub api_config: ApiConfig,
 }
 
 #[async_trait]
@@ -244,7 +225,10 @@ impl StorageBackend<FileFighterUser> for FileFighter {
             Ok(())
         } else {
             // IDEA: should we log something here?
-            Err(Error::new(ErrorKind::PermanentDirectoryNotAvailable, "Path didn't point to a directory."))
+            Err(Error::new(
+                ErrorKind::PermanentDirectoryNotAvailable,
+                "Path didn't point to a directory.",
+            ))
         }
     }
 }

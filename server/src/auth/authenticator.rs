@@ -24,13 +24,6 @@ impl FileFighterAuthenticator {
     }
 }
 
-impl Default for FileFighterAuthenticator {
-    #[must_use]
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[async_trait]
 impl Authenticator<FileFighterUser> for FileFighterAuthenticator {
     #[instrument(skip(self, creds), level = "debug")]

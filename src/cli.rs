@@ -19,7 +19,7 @@ pub struct Args {
     pub passive_end_port: u16,
 
     /// Base url of the FileSystemService
-    #[arg(short, long, env = "FTP_SERVICE_LOG_LEVEL", default_value_t = LevelFilter::DEBUG)]
+    #[arg(short, long, env = "FTP_SERVICE_LOG_LEVEL", default_value_t = LevelFilter::INFO)]
     pub log_level: LevelFilter,
 
     /// Base url of the FileSystemService eg. http://localhost:8080

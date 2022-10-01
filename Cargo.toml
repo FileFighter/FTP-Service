@@ -13,7 +13,7 @@ clap = { version = "4.0.7", features = ["derive", "env"] }
 # ftp lib
 libunftp = "0.18.5"
 # own implementations
-unftp-filefighter = { path = "./server" }
+unftp-filefighter = { path = "server" }
 filefighter-api = { path = "api" }
 # async
 tokio = { version = "1", features = ["full"] }

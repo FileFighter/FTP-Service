@@ -39,15 +39,9 @@ pub struct Args {
 /// Implement conversion between config and args
 impl From<Args> for ApiConfig {
     fn from(args: Args) -> Self {
-        let mut backend_url = args.backend_url;
-        backend_url.push_str("/api");
-
-        let mut filehandler_url = args.filehandler_url;
-        filehandler_url.push_str("/data");
-
         Self {
-            fss_base_url: backend_url,
-            fhs_base_url: filehandler_url,
+            fss_base_url: args.backend_url,
+            fhs_base_url: args.filehandler_url,
         }
     }
 }

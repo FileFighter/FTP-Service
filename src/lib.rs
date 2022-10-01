@@ -36,7 +36,11 @@ pub fn parse_cli_args() -> Args {
     // read from env
     dotenv().ok();
 
-    Args::parse()
+    let mut args = Args::parse();
+    // add missing uri components
+    args.backend_url.push_str("/api");
+    args.filehandler_url.push_str("/data");
+    args
 }
 
 pub async fn start_ftp_service(args: Args) -> Result<(), ServerError> {

@@ -1,3 +1,20 @@
 #+title: FileFighter FTP-Service
+#+options: toc:nil
 
 A small rust service faking a FTP-server by forwarding the requests to the FileFighter Backend (FileSystemService)
+
+* Run in Docker with local fss and fhs
+#+begin_src shell
+docker build . -t filefighter/ftp-service
+#+end_src
+
+#+begin_src shell
+docker run \
+    --name test \
+    -p 2121:2121 \
+    -p 10000-10010:10000-10010 \
+    -e FTP_SERVICE_BACKEND_URL=http://$(hostname):8080 \
+    -e FTP_SERVICE_FILEHANDLER_URL=http://$(hostname):5000 \
+    -e FTP_SERVICE_LOG_LEVEL=debug \
+    filefighter/ftp-service:latest
+#+end_src

@@ -27,11 +27,11 @@ pub struct Args {
     #[arg(short, long, env = "FTP_SERVICE_LOG_LEVEL", default_value_t = LevelFilter::INFO)]
     pub log_level: LevelFilter,
 
-    /// Base url of the FileSystemService eg. http://localhost:8080
+    /// Base url of the FileSystemService (without trailing slash) eg. http://localhost:8080
     #[arg(short, long, env = "FTP_SERVICE_BACKEND_URL")]
     pub backend_url: String,
 
-    /// Base url of the FileHandlerService eg. http://localhost:5000
+    /// Base url of the FileHandlerService (without trailing slash) eg. http://localhost:5000
     #[arg(short, long, env = "FTP_SERVICE_FILEHANDLER_URL")]
     pub filehandler_url: String,
 }
@@ -39,9 +39,15 @@ pub struct Args {
 /// Implement conversion between config and args
 impl From<Args> for ApiConfig {
     fn from(args: Args) -> Self {
+        let mut backend_url = args.backend_url;
+        backend_url.push_str("/api");
+
+        let mut filehandler_url = args.filehandler_url;
+        filehandler_url.push_str("/data");
+
         Self {
-            fss_base_url: args.backend_url,
-            fhs_base_url: args.filehandler_url,
+            fss_base_url: backend_url,
+            fhs_base_url: filehandler_url,
         }
     }
 }

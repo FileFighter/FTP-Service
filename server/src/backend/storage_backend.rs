@@ -230,10 +230,22 @@ impl StorageBackend<FileFighterUser> for FileFighter {
     #[instrument(skip(self), level = "debug")]
     async fn cwd<P: AsRef<Path> + Send + Debug>(
         &self,
-        _user: &FileFighterUser,
+        user: &FileFighterUser,
         path: P,
     ) -> Result<()> {
-        validate_and_normalize_path(path).map(|_| ())
+        let path = validate_and_normalize_path(path)?;
+        let inode = get_inode(&self.api_config, &path, &user.token)
+            .await
+            .map_err(transform_to_ftp_error)?;
+
+        // transform to metadata so we can check if its a directory
+        let inode_metadata = InodeMetaData::from(&inode, user.id);
+        if inode_metadata.is_dir() {
+            Ok(())
+        } else {
+            // IDEA: should we log something here?
+            Err(Error::new(ErrorKind::PermanentDirectoryNotAvailable, "Path didn't point to a directory."))
+        }
     }
 }
 

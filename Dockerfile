@@ -13,6 +13,6 @@ COPY --from=Builder \
 
 # expose ports
 EXPOSE 2121
-EXPOSE 5000-5100
+EXPOSE 10000-10010
 
 CMD /usr/local/bin/ftp-fighter

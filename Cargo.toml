@@ -2,15 +2,24 @@
 name = "ftp-fighter"
 version = "0.1.0"
 edition = "2021"
+authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <dev@filefighter.de>"]
 
 [workspace]
 members = [".", "server", "api"]
 
 [dependencies]
+# cli parsing
+clap = { version = "4.0.7", features = ["derive", "env"] }
+# ftp lib
 libunftp = "0.18.5"
+# own implementations
+unftp-filefighter = { path = "./server" }
+filefighter-api = { path = "api" }
+# async
 tokio = { version = "1", features = ["full"] }
+# logging and log panics better
 tracing = "0.1.36"
 tracing-subscriber = "0.3.15"
 color-eyre = "0.6.2"
-# own implementations
-unftp-filefighter = { path = "./server" }
+# Reading cli args from env file
+dotenvy = "0.15.5"

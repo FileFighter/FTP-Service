@@ -1,5 +1,6 @@
 use clap::Parser;
 use filefighter_api::ffs_api::ApiConfig;
+use tracing::metadata::LevelFilter;
 
 /// FileFighter FTP-Service
 #[derive(Parser, Debug, Clone)]
@@ -16,6 +17,10 @@ pub struct Args {
     /// Passive port range end to use for file transfers
     #[arg(short = 'e', long, value_parser = clap::value_parser!(u16).range(1..), env = "FTP_SERVICE_PASSIVE_END", default_value_t = 10010)]
     pub passive_end_port: u16,
+
+    /// Base url of the FileSystemService
+    #[arg(short, long, env = "FTP_SERVICE_LOG_LEVEL", default_value_t = LevelFilter::DEBUG)]
+    pub log_level: LevelFilter,
 
     /// Base url of the FileSystemService eg. http://localhost:8080
     #[arg(short, long, env = "FTP_SERVICE_BACKEND_URL")]

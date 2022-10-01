@@ -10,7 +10,7 @@ use unftp_filefighter::{FileFighter, FileFighterAuthenticator};
 
 mod cli;
 
-pub fn setup_logging() {
+pub fn setup_logging(args: &Args) {
     color_eyre::install().unwrap();
 
     tracing_subscriber::registry()
@@ -22,9 +22,9 @@ pub fn setup_logging() {
         .with(
             Targets::new()
                 // Own crates debug
-                .with_target("filefighter_api", LevelFilter::DEBUG)
-                .with_target("ftp_fighter", LevelFilter::DEBUG)
-                .with_target("unftp_filefighter", LevelFilter::DEBUG)
+                .with_target("filefighter_api", args.log_level)
+                .with_target("ftp_fighter", args.log_level)
+                .with_target("unftp_filefighter", args.log_level)
                 // Disable unauth logs
                 .with_target("libunftp", LevelFilter::OFF)
                 .with_default(Level::INFO),

@@ -1,14 +1,21 @@
-FROM ekidd/rust-musl-builder:latest as Builder
+FROM rust:alpine as Builder
 # copy src
-ADD --chown=rust:rust . ./
+WORKDIR /workdir
+ADD . ./
+# update base image
+RUN apk update
+RUN apk add --no-cache openssl-dev musl-dev
 # run
-RUN cargo build --release --locked
+RUN cargo clean
+RUN cargo build --release
+RUN ls -la
+RUN ls -la target
 
 # run in scratch
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 COPY --from=Builder \
-    /home/rust/src/target/x86_64-unknown-linux-musl/release/ftp-fighter \
+    /workdir/target/release/ftp-fighter \
     /usr/local/bin/
 
 # expose ports

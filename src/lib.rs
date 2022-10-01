@@ -59,6 +59,6 @@ pub async fn start_ftp_service(args: Args) -> Result<(), ServerError> {
         start: args.passive_start_port,
         end: args.passive_end_port,
     })
-    .listen(args.url)
+    .listen(format!("{}:{}", args.hostname, args.port))
     .await
 }

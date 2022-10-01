@@ -6,9 +6,14 @@ use tracing::metadata::LevelFilter;
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    /// Url to listen on
-    #[arg(short, long, env = "FTP_SERVICE_URL", default_value_t = String::from("0.0.0.0:2121"))]
-    pub url: String,
+    /// Used FTP-Server hostname
+    // IDEA: url validation?
+    #[arg(short = 'n', long, env = "FTP_SERVICE_HOSTNAME", default_value_t = String::from("0.0.0.0"))]
+    pub hostname: String,
+
+    /// Used FTP-Server port
+    #[arg(short, long, env = "FTP_SERVICE_PORT", value_parser = clap::value_parser!(u16).range(1..), default_value_t = 2121)]
+    pub port: u16,
 
     /// Passive port range start to use for file transfers
     #[arg(short = 's', long, value_parser = clap::value_parser!(u16).range(1..), env = "FTP_SERVICE_PASSIVE_START", default_value_t = 10000)]

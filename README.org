@@ -1,0 +1,3 @@
+#+title: FileFighter FTP-Service
+
+A small rust service faking a FTP-server by forwarding the requests to the FileFighter Backend (FileSystemService)

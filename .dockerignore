@@ -1,0 +1,4 @@
+# we build for a different target anyways
+target/
+.git/
+README.org

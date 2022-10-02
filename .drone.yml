@@ -1,0 +1,16 @@
+---
+kind: pipeline
+type: docker
+name: Test
+
+steps:
+  - name: Run Tests
+    image: rust:latest
+    commands:
+      - cargo test
+      - cargo clippy
+trigger:
+  trigger:
+    event:
+      - push
+      - pull_request

@@ -1,17 +1,15 @@
-FROM rust:alpine as Builder
+FROM rust:latest as Builder
 # copy src
 WORKDIR /workdir
 ADD . ./
 # update base image
-RUN apk update
-RUN apk add --no-cache openssl-dev musl-dev
+RUN apt-get update && apt-get upgrade --yes
 # run
 RUN cargo clean
 RUN cargo build --release
 
 # run in scratch
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+FROM debian:stable-slim
 COPY --from=Builder \
     /workdir/target/release/ftp-fighter \
     /usr/local/bin/

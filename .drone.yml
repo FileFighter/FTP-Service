@@ -7,6 +7,7 @@ steps:
   - name: Run Tests
     image: rust:latest
     commands:
+      - rustup component add clippy
       - cargo test
       - cargo clippy
 trigger:

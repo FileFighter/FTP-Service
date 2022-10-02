@@ -235,7 +235,11 @@ impl StorageBackend<FileFighterUser> for FileFighter {
 
 fn get_parent_and_name(path: &Path) -> Result<(PathBuf, &str)> {
     match (path.parent(), path.file_name()) {
-        (Some(parent), Some(name)) => Ok((parent.to_path_buf(), name.to_str().unwrap())),
+        (Some(parent), Some(name)) => Ok((
+            parent.to_path_buf(),
+            name.to_str()
+                .ok_or_else(|| Error::new(ErrorKind::LocalError, "Filename was not valid utf-8"))?,
+        )),
         (_, _) => Err(Error::new(
             ErrorKind::FileNameNotAllowedError,
             "Path for creating a directory must contain a parent and child component",

@@ -8,7 +8,7 @@ steps:
     image: rust:latest
     commands:
       - rustup component add clippy
-      - cargo test
+      - cargo test --all
       - cargo clippy
 trigger:
   trigger:

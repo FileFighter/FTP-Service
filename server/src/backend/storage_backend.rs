@@ -318,7 +318,6 @@ mod tests {
     #[test]
     fn path_contains_rclone_modification_date_works() {
         let path = PathBuf::from_str("/20221003093709 /Home/School").unwrap();
-
         let option = path_contains_rclone_modification_date(&path);
 
         match option {
@@ -331,5 +330,26 @@ mod tests {
             }
             None => panic!("Expected some value here."),
         }
+    }
+
+    #[test]
+    fn path_contains_rclone_modification_date_fails_without_whitespace() {
+        let path = PathBuf::from_str("/20221003093709/Home/School").unwrap();
+        let option = path_contains_rclone_modification_date(&path);
+        assert!(option.is_none())
+    }
+
+    #[test]
+    fn path_contains_rclone_modification_date_fails_with_wrong_timestamp_format() {
+        let path = PathBuf::from_str("/202210030937 /Home/School").unwrap();
+        let option = path_contains_rclone_modification_date(&path);
+        assert!(option.is_none())
+    }
+
+    #[test]
+    fn path_contains_rclone_modification_date_fails_with_wrong_timestamp() {
+        let path = PathBuf::from_str("/20221003093790 /Home/School").unwrap();
+        let option = path_contains_rclone_modification_date(&path);
+        assert!(option.is_none())
     }
 }

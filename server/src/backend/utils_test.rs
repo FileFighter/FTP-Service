@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod path_normalize_tests {
-    use crate::utils::validate_and_normalize_path;
+    use crate::backend::utils::validate_and_normalize_path;
 
     fn validation_works(before: &str, after: &str) {
         println!("Works: --- {} ------------", before);

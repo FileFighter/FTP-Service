@@ -1,6 +1,7 @@
 use super::{metadata::InodeMetaData, utils::validate_and_normalize_path};
 use crate::auth::user::FileFighterUser;
 use async_trait::async_trait;
+use chrono::NaiveDateTime;
 use filefighter_api::ffs_api::{
     endpoints::{
         create_directory, delete_inode, download_file, get_contents_of_folder, get_inode,
@@ -14,7 +15,7 @@ use libunftp::storage::{
 };
 use std::{
     fmt::Debug,
-    path::{Path, PathBuf},
+    path::{Component, Path, PathBuf},
 };
 use tokio::io::AsyncRead;
 use tracing::{debug, error, instrument, warn};
@@ -33,18 +34,31 @@ impl StorageBackend<FileFighterUser> for FileFighter {
         FEATURE_RESTART
     }
 
+    /// Endpoint to request Metadata for a inode
+    ///
+    /// # Rclone
+    /// In some cases the path consists of /<date>/ /acutal_path.
+    /// This means that rclone wants to update the modification date of that inode at the path
     #[instrument(skip(self), level = "debug")]
     async fn metadata<P: AsRef<Path> + Send + Debug>(
         &self,
         user: &FileFighterUser,
         path: P,
     ) -> Result<Self::Metadata> {
-        let path = validate_and_normalize_path(path)?;
-        let inode = get_inode(&self.api_config, &path, &user.token)
-            .await
-            .map_err(transform_to_ftp_error)?;
+        let path = path.as_ref();
 
-        Ok(InodeMetaData::from(&inode, user.id))
+        todo!()
+        // // rclone wants to update time
+        // if path_contains_rclone_modification_date(path)? {
+        // } else {
+        //     // regular metadata request
+        //     let path = validate_and_normalize_path(path)?;
+        //     let inode = get_inode(&self.api_config, &path, &user.token)
+        //         .await
+        //         .map_err(transform_to_ftp_error)?;
+
+        //     Ok(InodeMetaData::from(&inode, user.id))
+        // }
     }
 
     #[instrument(skip(self), level = "debug")]
@@ -256,6 +270,66 @@ fn transform_to_ftp_error(error: ApiError) -> Error {
         ResponseMalformed(err) => {
             warn!("Filesystemservice error response: {}", err);
             Error::new(ErrorKind::PermanentDirectoryNotAvailable, err)
+        }
+    }
+}
+
+// IDEA: check if rclone does try to update the root folder
+fn path_contains_rclone_modification_date(path: &Path) -> Option<(NaiveDateTime, PathBuf)> {
+    let mut components: Vec<Component> = path.components().collect();
+
+    // needs to be at least / and date<whitespace>
+    if components.len() < 2 {
+        return None;
+    }
+
+    // does exist
+    let mut timestamp_component = components[1].as_os_str().to_str()?.to_owned();
+
+    #[allow(clippy::unwrap_used)]
+    // if root path does not end with whitespace
+    if timestamp_component.is_empty() || timestamp_component.pop().unwrap() != ' ' {
+        return None;
+    }
+
+    // the rest of the root folder needs to be in this format
+    // yyyymmddhhmmss
+    let parsed_time = NaiveDateTime::parse_from_str(&timestamp_component, "%Y%m%d%H%M%S").ok()?;
+
+    // remove the timestamp component
+    components.remove(1);
+
+    Some((parsed_time, components.iter().collect()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::path_contains_rclone_modification_date;
+    use chrono::NaiveDateTime;
+    use std::{path::PathBuf, str::FromStr};
+
+    #[test]
+    fn timestamp_parsing_works() {
+        let result = NaiveDateTime::parse_from_str("20221003093709", "%Y%m%d%H%M%S").unwrap();
+        let resulting_string = result.to_string();
+        assert_eq!("2022-10-03 09:37:09", resulting_string)
+    }
+
+    #[test]
+    fn path_contains_rclone_modification_date_works() {
+        let path = PathBuf::from_str("/20221003093709 /Home/School").unwrap();
+
+        let option = path_contains_rclone_modification_date(&path);
+
+        match option {
+            Some(result) => {
+                assert_eq!(
+                    NaiveDateTime::parse_from_str("20221003093709", "%Y%m%d%H%M%S").unwrap(),
+                    result.0
+                );
+                assert_eq!(PathBuf::from_str("/Home/School").unwrap(), result.1);
+            }
+            None => panic!("Expected some value here."),
         }
     }
 }

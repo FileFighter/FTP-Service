@@ -14,5 +14,5 @@ tracing = "0.1.36"
 tokio = "1.21.2"
 tokio-stream = "0.1.10"
 futures = "0.3"
-tokio-util = { version = "0.6.9", features = ["compat","io"] }
+tokio-util = { version = "0.7.4", features = ["compat","io"] }
 new_mime_guess = "4.0.1"

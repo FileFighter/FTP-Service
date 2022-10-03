@@ -2,7 +2,7 @@
 name = "ftp-fighter"
 version = "1.0.0"
 edition = "2021"
-authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <dev@filefighter.de>"]
+authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <valentin.theodor@web.de>"]
 
 [workspace]
 members = [".", "server", "api"]

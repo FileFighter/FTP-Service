@@ -2,7 +2,7 @@
 name = "filefighter-api"
 version = "1.0.0"
 edition = "2021"
-authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <dev@filefighter.de>"]
+authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <valentin.theodor@web.de>"]
 
 [dependencies]
 reqwest = { version = "0.11.12", features = ["json", "cookies","multipart","stream"] }

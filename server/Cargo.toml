@@ -1,8 +1,8 @@
 [package]
 name = "unftp-filefighter"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
-
+authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <dev@filefighter.de>"]
 
 [dependencies]
 async-trait = "0.1.56"

@@ -5,12 +5,6 @@ on:
   push:
     branches:
       - "feature/**"
-    paths:
-      - "src/**"
-      - "src/api/**"
-      - "src/server/**"
-      - "**/Cargo.toml"
-      - "**/Cargo.lock"
 
 jobs:
   Build_Docker_Image_on_Push:

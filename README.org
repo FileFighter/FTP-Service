@@ -3,7 +3,9 @@
 
 A small rust service faking a FTP-server by forwarding the requests to the FileFighter Backend (FileSystemService)
 
-[[https://drone.filefighter.de/api/badges/FileFighter/FTP-Service/status.svg]]
+[[https://github.com/FileFighter/FTP-Service/actions/workflows/masterTests.yml/badge.svg]]
+[[https://github.com/FileFighter/FTP-Service/actions/workflows/stableRelease.yml/badge.svg]]
+[[https://github.com/FileFighter/FTP-Service/actions/workflows/latestRelease.yml/badge.svg]]
 
 * Run in Docker with local fss and fhs
 #+begin_src shell

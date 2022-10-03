@@ -42,3 +42,56 @@ mod path_normalize_tests {
         validation_fails("../");
     }
 }
+
+#[cfg(test)]
+mod rclone_modification_check_tests {
+    use chrono::NaiveDateTime;
+    use std::{path::PathBuf, str::FromStr};
+
+    use crate::backend::utils::path_contains_rclone_modification_date;
+
+    #[test]
+    fn timestamp_parsing_works() {
+        let result = NaiveDateTime::parse_from_str("20221003093709", "%Y%m%d%H%M%S").unwrap();
+        let resulting_string = result.to_string();
+        assert_eq!("2022-10-03 09:37:09", resulting_string)
+    }
+
+    #[test]
+    fn path_contains_rclone_modification_date_works() {
+        let path = PathBuf::from_str("/20221003093709 /Home/School").unwrap();
+        let option = path_contains_rclone_modification_date(&path);
+
+        match option {
+            Some(result) => {
+                assert_eq!(
+                    NaiveDateTime::parse_from_str("20221003093709", "%Y%m%d%H%M%S").unwrap(),
+                    result.0
+                );
+                assert_eq!(PathBuf::from_str("/Home/School").unwrap(), result.1);
+            }
+            None => panic!("Expected some value here."),
+        }
+    }
+
+    #[test]
+    fn path_contains_rclone_modification_date_fails_without_whitespace() {
+        let path = PathBuf::from_str("/20221003093709/Home/School").unwrap();
+        let option = path_contains_rclone_modification_date(&path);
+        assert!(option.is_none())
+    }
+
+    #[test]
+    fn path_contains_rclone_modification_date_fails_with_wrong_timestamp_format() {
+        let path = PathBuf::from_str("/202210030937 /Home/School").unwrap();
+        let option = path_contains_rclone_modification_date(&path);
+        assert!(option.is_none())
+    }
+
+    #[test]
+    fn path_contains_rclone_modification_date_fails_with_wrong_timestamp() {
+        let path = PathBuf::from_str("/20221003093790 /Home/School").unwrap();
+        let option = path_contains_rclone_modification_date(&path);
+        assert!(option.is_none())
+    }
+}

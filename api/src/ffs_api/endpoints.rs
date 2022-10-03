@@ -1,5 +1,6 @@
 use crate::ffs_api::models::{
-    error_response::ErrorResponse, move_resource::MoveResource, rename_resource::RenameResource,
+    error_response::ErrorResponse, inode_timestamp_update_ressource::InodeTimestampUpdateRessource,
+    move_resource::MoveResource, rename_resource::RenameResource,
 };
 
 use super::{
@@ -270,6 +271,31 @@ pub async fn download_file(
     // build a stream reader which allows us to use async read on a stream.
     let stream_reader = StreamReader::new(download);
     Ok(Box::new(stream_reader))
+}
+
+pub async fn set_last_modified_of_inode(
+    api_config: &ApiConfig,
+    token: &str,
+    path: &Path,
+    last_modified: i64,
+) -> Result<InodeResource> {
+    let url = format!("{}/filesystem/timestamp", api_config.fss_base_url);
+
+    debug!("Authenticating with token '{}'", token);
+
+    let body = InodeTimestampUpdateRessource {
+        path: path.to_str().unwrap().to_owned(),
+        timestamp: last_modified,
+    };
+
+    let response = reqwest::Client::new()
+        .put(url)
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .await?;
+
+    transform_response(response, StatusCode::OK).await
 }
 
 async fn transform_response<T>(response: Response, expected_status: StatusCode) -> Result<T>

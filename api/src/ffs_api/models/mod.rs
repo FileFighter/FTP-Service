@@ -2,6 +2,7 @@ pub mod contents_resource;
 pub mod error_response;
 pub mod folder_creation_resource;
 pub mod inode_resource;
+pub mod inode_timestamp_update_ressource;
 pub mod move_resource;
 pub mod preflight_request_resource;
 pub mod preflight_response_resource;

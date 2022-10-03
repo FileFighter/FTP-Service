@@ -5,7 +5,7 @@ use chrono::NaiveDateTime;
 use filefighter_api::ffs_api::{
     endpoints::{
         create_directory, delete_inode, download_file, get_contents_of_folder, get_inode,
-        move_inode, rename_inode, upload_file,
+        move_inode, rename_inode, set_last_modified_of_inode, upload_file,
     },
     ApiConfig,
     ApiError::{self, ReqwestError, ResponseMalformed},
@@ -47,18 +47,30 @@ impl StorageBackend<FileFighterUser> for FileFighter {
     ) -> Result<Self::Metadata> {
         let path = path.as_ref();
 
-        todo!()
-        // // rclone wants to update time
-        // if path_contains_rclone_modification_date(path)? {
-        // } else {
-        //     // regular metadata request
-        //     let path = validate_and_normalize_path(path)?;
-        //     let inode = get_inode(&self.api_config, &path, &user.token)
-        //         .await
-        //         .map_err(transform_to_ftp_error)?;
+        let inode = match path_contains_rclone_modification_date(path) {
+            // rclone wants to update time
+            Some(tuple) => {
+                set_last_modified_of_inode(
+                    &self.api_config,
+                    &user.token,
+                    &tuple.1,
+                    tuple.0.timestamp(),
+                )
+                .await
+            }
+            // regular metadata request
+            None => {
+                get_inode(
+                    &self.api_config,
+                    &validate_and_normalize_path(path)?,
+                    &user.token,
+                )
+                .await
+            }
+        }
+        .map_err(transform_to_ftp_error)?;
 
-        //     Ok(InodeMetaData::from(&inode, user.id))
-        // }
+        Ok(InodeMetaData::from(&inode, user.id))
     }
 
     #[instrument(skip(self), level = "debug")]

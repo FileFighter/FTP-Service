@@ -1,0 +1,31 @@
+name: Tests (Feature)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "feature/**"
+      - "renovate/**"
+    paths:
+      - "src/**"
+      - "src/api/**"
+      - "src/server/**"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - ".github/workflows/featureTests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: Checks and Tests
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --all-features
+          cargo test --all

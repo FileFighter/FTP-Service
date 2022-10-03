@@ -1,0 +1,30 @@
+name: Tests (Master)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "master"
+    paths:
+      - "src/**"
+      - "src/api/**"
+      - "src/server/**"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
+      - ".github/workflows/masterTests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: Checks and Tests
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --all-features -- -D warnings
+          cargo test --all

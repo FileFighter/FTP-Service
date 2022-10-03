@@ -1,0 +1,39 @@
+name: Stable Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+jobs:
+  Build_Docker_Image_on_new_Tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: Run Checks and Test
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --all-features -- -D warnings
+          cargo test --all
+      - name: Generate Image Tag from Git Tag
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PW }}
+      - name: Build and Push Image
+        run: |
+          VERSION=${{ steps.vars.outputs.tag }}
+          docker build . -t filefighter/ftp-service:$VERSION -t filefighter/ftp-service:stable
+          docker push filefighter/ftp-service:stable
+          docker push filefighter/ftp-service:$VERSION
+      - name: Create new release and tag.
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true

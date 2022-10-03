@@ -1,6 +1,6 @@
 [package]
 name = "filefighter-api"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <valentin.theodor@web.de>"]
 

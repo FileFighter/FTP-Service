@@ -11,7 +11,7 @@ serde_json = "1.0.85"
 sha256 = "1.0.3"
 thiserror = "1.0.37"
 tracing = "0.1.36"
-tokio = "1.21.2"
+tokio = "1.24.2"
 tokio-stream = "0.1.10"
 futures = "0.3"
 tokio-util = { version = "0.7.4", features = ["compat","io"] }

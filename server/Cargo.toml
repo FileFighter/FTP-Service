@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <valentin.theodor@web.de>"]
 
 [dependencies]
-async-trait = "0.1.57"
+async-trait = "0.1.64"
 libunftp = "0.18.6"
 tokio = "1.21.1"
 tracing = "0.1.36"

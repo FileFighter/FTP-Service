@@ -33,6 +33,7 @@ pub struct FileFighter {
 impl StorageBackend<FileFighterUser> for FileFighter {
     type Metadata = InodeMetaData;
 
+    #[allow(clippy::unreachable)]
     #[instrument(skip(self), level = "debug")]
     fn supported_features(&self) -> u32 {
         FEATURE_RESTART

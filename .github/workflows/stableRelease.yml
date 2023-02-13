@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - "v*.*.*"
+    branches:
+      - "master"
+
 jobs:
   Build_Docker_Image_on_new_Tag:
     runs-on: ubuntu-latest

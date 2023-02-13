@@ -1,18 +1,18 @@
 [package]
 name = "filefighter-api"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <valentin.theodor@web.de>"]
 
 [dependencies]
-reqwest = { version = "0.11.12", features = ["json", "cookies","multipart","stream"] }
-serde = { version = "1.0.145", features = ["derive"] }
-serde_json = "1.0.85"
-sha256 = "1.0.3"
-thiserror = "1.0.37"
-tracing = "0.1.36"
-tokio = "1.21.2"
-tokio-stream = "0.1.10"
-futures = "0.3"
-tokio-util = { version = "0.7.4", features = ["compat","io"] }
+reqwest = { version = "0.11.14", features = ["json", "cookies","multipart","stream"] }
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.93"
+sha256 = "1.1.2"
+thiserror = "1.0.38"
+tracing = "0.1.37"
+tokio = "1.25.0"
+tokio-stream = "0.1.11"
+futures = "0.3.26"
+tokio-util = { version = "0.7.7", features = ["compat","io"] }
 new_mime_guess = "4.0.1"

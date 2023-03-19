@@ -7,7 +7,7 @@ authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <valentin.theodor@we
 [dependencies]
 async-trait = "0.1.67"
 libunftp = "0.18.8"
-tokio = "1.25.0"
+tokio = "1.26.0"
 tracing = "0.1.37"
 url = "2.3.1"
 filefighter-api = { path = "../api" }

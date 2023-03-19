@@ -11,4 +11,4 @@ tokio = "1.25.0"
 tracing = "0.1.37"
 url = "2.3.1"
 filefighter-api = { path = "../api" }
-chrono = "0.4.23"
+chrono = "0.4.24"

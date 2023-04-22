@@ -19,7 +19,7 @@ filefighter-api = { path = "api" }
 tokio = { version = "1.27.0", features = ["full"] }
 # logging and log panics better
 tracing = "0.1.37"
-tracing-subscriber = "0.3.16"
+tracing-subscriber = "0.3.17"
 color-eyre = "0.6.2"
 # Reading cli args from env file
 dotenvy = "0.15.7"

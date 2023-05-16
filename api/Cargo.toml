@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <valentin.theodor@web.de>"]
 
 [dependencies]
-reqwest = { version = "0.11.17", features = ["json", "cookies","multipart","stream"] }
+reqwest = { version = "0.11.18", features = ["json", "cookies","multipart","stream"] }
 serde = { version = "1.0.163", features = ["derive"] }
 serde_json = "1.0.96"
 sha256 = "1.1.3"

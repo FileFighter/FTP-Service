@@ -11,7 +11,7 @@ members = [".", "server", "api"]
 # cli parsing
 clap = { version = "4.3.0", features = ["derive", "env"] }
 # ftp lib
-libunftp = "0.18.8"
+libunftp = "0.18.9"
 # own implementations
 unftp-filefighter = { path = "server" }
 filefighter-api = { path = "api" }

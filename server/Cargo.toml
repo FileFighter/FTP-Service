@@ -6,7 +6,7 @@ authors = ["open-schnick <dev2@filefighter.de>", "qvalentin <valentin.theodor@we
 
 [dependencies]
 async-trait = "0.1.68"
-libunftp = "0.18.8"
+libunftp = "0.18.9"
 tokio = "1.28.2"
 tracing = "0.1.38"
 url = "2.3.1"

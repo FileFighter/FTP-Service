@@ -9,7 +9,7 @@ members = [".", "server", "api"]
 
 [dependencies]
 # cli parsing
-clap = { version = "4.3.1", features = ["derive", "env"] }
+clap = { version = "4.3.2", features = ["derive", "env"] }
 # ftp lib
 libunftp = "0.18.9"
 # own implementations

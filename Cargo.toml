@@ -18,7 +18,7 @@ filefighter-api = { path = "api" }
 # async
 tokio = { version = "1.28.2", features = ["full"] }
 # logging and log panics better
-tracing = "0.1.38"
+tracing = "0.1.40"
 tracing-subscriber = "0.3.17"
 color-eyre = "0.6.2"
 # Reading cli args from env file
